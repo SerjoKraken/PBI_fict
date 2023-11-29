@@ -208,12 +208,13 @@ void saveIndex(Index index, char *filename){
   } 
 
   header = (fileHeader*)index;
-  fwrite(header->dbname, strlen(header->dbname) + 1, 1, fp);
+  // fwrite(header->dbname, strlen(header->dbname) + 1, 1, fp);
   fwrite(&header->n, sizeof(int), 1, fp);
   fwrite(&header->dim, sizeof(int), 1, fp);
+  fwrite(&pbi->nPermutants, sizeof(int), 1, fp);
 
   for(i = 0; i < pbi->nPermutants; i++){
-    fwrite(pbi->permutans, sizeof(int), 1, fp);
+    fwrite(&pbi->permutans[i], sizeof(int), 1, fp);
   }
 
   for(i = 0; i < header->n; i++){
@@ -242,9 +243,16 @@ Index loadIndex(char *filename){
 
   header = malloc(sizeof(fileHeader));
 
-  while((*ptr++ = getc(fp)));
-  header->dbname = malloc(ptr - str);
-  strcpy(header->dbname, str);
+  // while((*ptr++ = getc(fp)));
+  header->dbname = malloc(strlen(filename) + 1);
+  strcpy(header->dbname, filename);
+
+
+  // fread(header->dbname, strlen(filename) + 1, 1, fp);
+
+  // strcpy(header->dbname, str);
+  fread(&header->n, sizeof(int), 1, fp);
+  fread(&header->dim, sizeof(int), 1, fp);
 
   fread(&pbi->nPermutants, sizeof(int), 1, fp);
 
@@ -254,16 +262,24 @@ Index loadIndex(char *filename){
 
   for(i = 0; i < pbi->nPermutants; i++){
     fread(&pbi->permutans[i], sizeof(int), 1, fp);
+    printf("%d ", pbi->permutans[i]);
   }
+  printf("\n");
+
+  printf("7\n");
   for(i = 0; i < header->n; i++){
+    pbi->objects[i].permutation = malloc(sizeof(int) * pbi->nPermutants);
     for(j = 0; j < pbi->nPermutants; j++){
-      pbi->objects[i].permutation = malloc(sizeof(int) * pbi->nPermutants);
       fread(&pbi->objects[i].permutation[j], sizeof(int), 1, fp);
     }
+    printPermutation(pbi->objects[i].permutation, pbi->nPermutants);
   }
+  printf("8\n");
 
   fclose(fp);
-  openDB(header->dbname);
+  printf("9\n");
+  openDB("vectors.ascii");
+  printf("10\n");
   
   return (Index)header;
 }
