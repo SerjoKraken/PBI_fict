@@ -20,7 +20,7 @@ int spearmanRho(int *a, int *b, int n);
 // Structure to store an object and his permutation
 typedef struct {
   int id;
-  void *data;
+  // void *data;
   int *permutation;
 } Object;
 
@@ -28,6 +28,7 @@ typedef struct {
 typedef struct {
   char *dbname;
   int n;            // Number of permutants
+  int size;
   int dim;
 } fileHeader;
 
@@ -36,6 +37,7 @@ typedef struct {
   int nPermutants; // number of permutants
   Object *objects;
   int *permutans;
+  int size;
 } PBI;
 
 

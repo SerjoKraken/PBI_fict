@@ -55,20 +55,16 @@ int openDB(char *name){
   int func;
   struct stat sdata;
 
-  printf("before read header\n");
   stat(name, &sdata);
   fread(&func, sizeof(int), 1, f);
 
-  printf("after read header\n");
   /*
    * func 1 --> distance L1*/
   if (func == 1) {
     db.df = distanceL1;
   }else if (func == 2){
-    printf("Distance L2\n");
     db.df = distanceL2;
   }else if (func == 3){
-    printf("Infinity Distance\n");
     db.df = distanceInf;
   }
 
@@ -76,22 +72,18 @@ int openDB(char *name){
   db.nnums = (sdata.st_size - 2 * sizeof(int))/sizeof(float)/db.coords;
   db.nums = malloc( (db.nnums+1) * sizeof(float) * db.coords);
 
-  printf("nnums %d\n", db.nnums);
-  printf("coords %d\n", db.coords);
-
-
   fread(db.nums, db.nnums * sizeof(float) * db.coords, db.coords, f);
   
   fclose(f);
 
-  for(int i = 0; i < db.nnums; i++){
-    for(int j = 0; j < db.coords; j++){
-      printf("%lf ", *(db(i)+j));
-    }
-    printf("\n");
-  }
+  // for(int i = 0; i < db.nnums; i++){
+  //   for(int j = 0; j < db.coords; j++){
+  //     printf("%lf ", *(db(i)+j));
+  //   }
+  //   printf("\n");
+  // }
 
-  printf("db.nnums %d\n", db.nnums);
+  // printf("db.nnums %d\n", db.nnums);
 
   return db.nnums;
   

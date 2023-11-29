@@ -24,8 +24,8 @@ Index build(char *dbname, int n, int *argc, char ***argv){
 
   header->n = openDB("vectors.ascii"); 
 
-  printf("nnums %d\n", n);
-  printf("Finish openDB\n");
+  // printf("nnums %d\n", n);
+  // printf("Finish openDB\n");
   if (n && (n < header->n)) {
     header->n = n;
   }
@@ -35,7 +35,7 @@ Index build(char *dbname, int n, int *argc, char ***argv){
   pbi->permutans = malloc(sizeof(int) * 20);
   pbi->objects = malloc(sizeof(Object) * header->n);
 
-  printf("pbi->nPermutants %d\n", pbi->nPermutants);
+  // printf("pbi->nPermutants %d\n", pbi->nPermutants);
   for (int i = 0; i < pbi->nPermutants; i++) {
     pbi->permutans[i] = i;
   }
@@ -51,7 +51,7 @@ Index build(char *dbname, int n, int *argc, char ***argv){
 
   aux = header->n;
 
-  printf("build index\n");
+  // printf("build index\n");
   loadObjects(header, pbi->nPermutants);
 
   // for (int i = 0; i < header->n; i++) {
@@ -79,48 +79,20 @@ void insertSort(float *distances, int *permutants, int *permutation, int n){
     td = distances[p];
     distances[p] = distances[i];
     distances[i] = td;
+
     tp = permutation[p];
     permutation[p] = permutation[i];
     permutation[i] = tp;
   }
 }
 
-void mergeSort(float *distances, int *permutants, int *permutation, int n){
-  int i, j, k;
-  int m = n / 2;
-  float *tmp = malloc(sizeof(float) * n);
-  int *tmp2 = malloc(sizeof(int) * n);
-  if (n < 2)
-    return;
-  mergeSort(distances, permutants, permutation, m);
-  mergeSort(distances + m, permutants + m, permutation + m, n - m);
-  for (i = 0; i < m; i++)
-    tmp[i] = distances[i];
-  for (i = m, j = n - 1; i < n; i++, j--)
-    tmp[i] = distances[j];
-  for (i = 0; i < m; i++)
-    tmp2[i] = permutation[i];
-  for (i = m, j = n - 1; i < n; i++, j--)
-    tmp2[i] = permutation[j];
-  i = 0;
-  j = n - 1;
-  for (k = 0; k < n; k++)
-    if (tmp[i] < tmp[j]) {
-      distances[k] = tmp[i];
-      permutation[k] = tmp2[i++];
-    } else {
-      distances[k] = tmp[j];
-      permutation[k] = tmp2[j--];
-    }
-  free(tmp);
-  free(tmp2);
-}
   
 
 // We calculate the permutation sorting by the distances form every permutant
 void quicksort(float *distances, int *permutants, int *permutation, int n){
-  printf("We are in quicksort\n");
-  int i, j, p, t;
+  int i, j, p;
+  float t;
+
   if (n < 2)
     return;
   p = distances[n / 2];
@@ -151,11 +123,11 @@ void loadObjects(fileHeader *h, int nPer){
   // We use the first 20 elements as permutants
 
 
-  printf("db.nnums %d\n", db.nnums);
-  printf("db.coords %d\n", db.coords);
-  printf("db.n %d\n", h->n);
+  // printf("db.nnums %d\n", db.nnums);
+  // printf("db.coords %d\n", db.coords);
+  // printf("db.n %d\n", h->n);
   
-  printf("aux %d\n", aux);
+  // printf("aux %d\n", aux);
   for (i = 0; i < aux; i++) {
     pbi->objects[i].id = i;
 
@@ -164,17 +136,17 @@ void loadObjects(fileHeader *h, int nPer){
       // distances[j] += distance(pbi->permutans[k], j);
       // distances[k] = db.df(u, q, db.coords);
       distances[k] = distance(pbi->permutans[k], i);
-      printf("distances[%d] %f\n", k, distances[k]);
+      // printf("distances[%d] %f\n", k, distances[k]);
       // quicksort(double *distances, int *permutants, int *permutation, int n);
     }
     insertSort(distances, pbi->permutans, pbi->objects[i].permutation, 20);
 
-    printf("[");
-    for (int j = 0; j < 20; j++) {
-      printf("%f,", distances[j]);
-    }
-    printf("]\n");
-    printPermutation(pbi->objects[i].permutation, 20);
+    // printf("[");
+    // for (int j = 0; j < 20; j++) {
+      // printf("%f,", distances[j]);
+    // }
+    // printf("]\n");
+    // printPermutation(pbi->objects[i].permutation, 20);
 
     // TODO: We need to calculate the distances.
     // to calculate the order of the permutations
@@ -182,6 +154,14 @@ void loadObjects(fileHeader *h, int nPer){
 }
 
 void printPBI(){
+  printf("pbi->nPermutants %d\n", pbi->nPermutants);
+  printf("pbi->permutans\n");
+  for(int i = 0; i < 20; i++){
+    printf("%d ", pbi->permutans[i]);
+  }
+
+  printf("\n");
+
   for(int i = 0; i < 100; i++){
     printf("Object %d\n", i);
     for(int j = 0; j < 20; j++){
@@ -198,3 +178,109 @@ void swap(int *a, int *b){
   *b = t;
 }
 
+void freeIndex(Index index, bool closeDB){
+  fileHeader *header = (fileHeader*)index;
+  free(header->dbname);
+  free(header);
+  if (closeDB) {
+    // closeDB();
+  }
+  free(pbi->permutans);
+  for (int i = 0; i < header->n; i++) {
+    free(pbi->objects[i].permutation);
+  }
+  free(pbi->objects);
+  free(pbi);
+}
+
+Index init(char *dbname, int *argc, char ***argv){
+  return NULL;
+}
+
+void saveIndex(Index index, char *filename){
+  int i, j;
+  FILE *fp;
+  fileHeader *header = (fileHeader*)index;
+
+  if(!(fp = fopen(filename, "w"))){
+    printf("Error opening file %s\n", filename);
+    exit(1);
+  } 
+
+  header = (fileHeader*)index;
+  fwrite(header->dbname, strlen(header->dbname) + 1, 1, fp);
+  fwrite(&header->n, sizeof(int), 1, fp);
+  fwrite(&header->dim, sizeof(int), 1, fp);
+
+  for(i = 0; i < pbi->nPermutants; i++){
+    fwrite(pbi->permutans, sizeof(int), 1, fp);
+  }
+
+  for(i = 0; i < header->n; i++){
+    for(j = 0; j < pbi->nPermutants; j++){
+      fwrite(&pbi->objects[i].permutation[j], sizeof(int), 1, fp);
+    }
+  }
+
+  fclose(fp);
+}
+
+Index loadIndex(char *filename){
+  char str[1024];
+  char *ptr = str;
+  int i, j;
+  FILE *fp;
+  fileHeader *header;
+  pbi = malloc(sizeof(PBI));
+
+
+
+  if((fp = fopen(filename, "r")) == NULL){
+    fprintf(stderr, "Error opening file %s\n", filename);
+    exit(-1);
+  }
+
+  header = malloc(sizeof(fileHeader));
+
+  while((*ptr++ = getc(fp)));
+  header->dbname = malloc(ptr - str);
+  strcpy(header->dbname, str);
+
+  fread(&pbi->nPermutants, sizeof(int), 1, fp);
+
+  pbi->permutans = malloc(sizeof(int) * pbi->nPermutants);
+
+  pbi->objects = malloc(sizeof(Object) * header->n);
+
+  for(i = 0; i < pbi->nPermutants; i++){
+    fread(&pbi->permutans[i], sizeof(int), 1, fp);
+  }
+  for(i = 0; i < header->n; i++){
+    for(j = 0; j < pbi->nPermutants; j++){
+      pbi->objects[i].permutation = malloc(sizeof(int) * pbi->nPermutants);
+      fread(&pbi->objects[i].permutation[j], sizeof(int), 1, fp);
+    }
+  }
+
+  fclose(fp);
+  openDB(header->dbname);
+  
+  return (Index)header;
+}
+
+int rangeSearch(Index S, int obj, elementDistance r, bool show){
+  return 0;
+
+}
+
+elementDistance kNNSearch(Index S, int obj, int k, bool show){
+  return 0;
+}
+
+void insertObject(Index S, int obj){
+
+}
+
+void deleteObject(Index S, int obj, bool show){
+
+}
