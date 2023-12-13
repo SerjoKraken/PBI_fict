@@ -37,6 +37,7 @@ elementDistance kNNSearch(Index S, int obj, int k, bool show);
 
 /*
  * Insert an object obj in the index S.
+ * This is used in the dynamic version
  * */
 
 void insertObject(Index S, int obj);
@@ -44,6 +45,7 @@ void insertObject(Index S, int obj);
 /*
  * Delete an object obj from the index S. it prints in which
  * node was stored ovj if show
+ * Used in the dynamic version
  * */
 void deleteObject(Index S, int obj, bool show);
 

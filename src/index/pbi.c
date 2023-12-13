@@ -1,11 +1,45 @@
+#pragma once
+
 #include "pbi.h"
 #include "../localUtils.h"
-#include "../db.h"
+// #include "../db.h"
 #include "index.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int aux = 0;
+
+// q = [5, 1, 2, 0, 3, 4]
+
+// u = [2, 5, 1, 0, 4, 3]
+
+int* inversePermutation(int * permutation, int n){
+  int i;
+  int *inverse = malloc(sizeof(int) * n);
+
+  for(i = 0; i < n; i++){
+    inverse[permutation[i]] = i;
+  }
+  // 3 2 0 5 4 1
+  return inverse;
+}
+
+int spearmanRho(int *u, int *q, int n){
+  int sum = 0;
+  int i, j;
+
+  int* inverse = inversePermutation(u, n);
+
+  for(i = 0; i < n; i++){
+    // we calculate the difference of position between the two vectors
+    sum += abs(i - inverse[q[i]]);
+  }
+
+  return sum;
+}
+
+
 
 void printPermutation(int *permutation, int n){
   int i = 0;
@@ -92,6 +126,7 @@ void insertSort(float *distances, int *permutants, int *permutation, int n){
 void quicksort(float *distances, int *permutants, int *permutation, int n){
   int i, j, p;
   float t;
+  float tp;
 
   if (n < 2)
     return;
@@ -107,9 +142,9 @@ void quicksort(float *distances, int *permutants, int *permutation, int n){
     distances[i] = distances[j];
     distances[j] = t;
 
-    t = permutation[i];
+    tp = permutation[i];
     permutation[i] = permutation[j];
-    permutation[j] = t;
+    permutation[j] = tp;
   }
   quicksort(distances, permutants, permutation, i);
   quicksort(distances + i, permutants + i, permutation, n - i);
@@ -139,7 +174,7 @@ void loadObjects(fileHeader *h, int nPer){
       // printf("distances[%d] %f\n", k, distances[k]);
       // quicksort(double *distances, int *permutants, int *permutation, int n);
     }
-    insertSort(distances, pbi->permutans, pbi->objects[i].permutation, 20);
+    quicksort(distances, pbi->permutans, pbi->objects[i].permutation, nPer);
 
     // printf("[");
     // for (int j = 0; j < 20; j++) {
@@ -266,30 +301,34 @@ Index loadIndex(char *filename){
   }
   printf("\n");
 
-  printf("7\n");
   for(i = 0; i < header->n; i++){
     pbi->objects[i].permutation = malloc(sizeof(int) * pbi->nPermutants);
     for(j = 0; j < pbi->nPermutants; j++){
       fread(&pbi->objects[i].permutation[j], sizeof(int), 1, fp);
     }
-    printPermutation(pbi->objects[i].permutation, pbi->nPermutants);
+    // printPermutation(pbi->objects[i].permutation, pbi->nPermutants);
   }
-  printf("8\n");
 
   fclose(fp);
-  printf("9\n");
   openDB("vectors.ascii");
-  printf("10\n");
   
   return (Index)header;
 }
 
 int rangeSearch(Index S, int obj, elementDistance r, bool show){
-  return 0;
+  // we calculate the spearman rho distance between the query and the database
+  // we sort the database by the spearman rho similarity
+  // we return the elements with distance less than r
 
+  return 0;
 }
 
 elementDistance kNNSearch(Index S, int obj, int k, bool show){
+
+  // we calculate the spearman rho distance between the query and the database
+  // we sort the database by the spearman rho similarity
+  // we return the k first elements
+  
   return 0;
 }
 

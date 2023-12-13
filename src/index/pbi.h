@@ -35,13 +35,13 @@ typedef struct {
 // Pemutant Based Index
 typedef struct {
   int nPermutants; // number of permutants
-  Object *objects;
-  int *permutans;
-  int size;
+  Object *objects; // objects of the index
+  int *permutans; // permutants of the index
+  int size; // size of the index
 } PBI;
 
 
-static PBI *pbi; // Store all the DB objects
+static PBI *pbi; // Store all the information of the index
 
 
 int comparate(const void *a, const void *b);
