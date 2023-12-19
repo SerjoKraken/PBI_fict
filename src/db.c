@@ -18,6 +18,10 @@ float distance(int u, int q){
   return db.df(db(u), db(q), db.coords);
 }
 
+float _distance(int u, float* q){
+  return db.df(db(u), q, db.coords);
+}
+
 float distanceL1(float *u, float *q, int k){
   int i;
   float total = 0;
@@ -76,22 +80,16 @@ int openDB(char *name){
   
   fclose(f);
 
-  // for(int i = 0; i < db.nnums; i++){
-  //   for(int j = 0; j < db.coords; j++){
-  //     printf("%lf ", *(db(i)+j));
-  //   }
-  //   printf("\n");
-  // }
-
-  // printf("db.nnums %d\n", db.nnums);
-
   return db.nnums;
-  
 }
 
 void closeDB(void){
   free(db.nums);
   db.nums = NULL;
+}
+
+DB *getDB(void){
+  return &db;
 }
 
 int parseObj(char *str){

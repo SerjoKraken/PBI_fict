@@ -11,15 +11,87 @@
 #include "index/pbi.h"
 #include "string.h"
 
+
+void parseQuery(char *p, float *query, int dim){
+  int i, step;
+  for(i = 0; i <  dim - 1; i++){
+    sscanf(p, "%f,%n",  query + i, &step);
+    p += step;
+  }
+  sscanf(p, "%f", query + i);
+}
+
 int main(int argc, char *argv[]) {
-  char query[1024];
-  time_t start, end;
+  char str[1024];
+  int k;
+  float r;
 
-  Index index = loadIndex("index.bin");
-  printf("Index loaded\n");
 
-  printPBI();
+  struct stat sdata;
+  struct tms t1, t2;
 
-  start = time(NULL);
-  end = time(NULL);
+  int numQueries = 0;
+
+  if (argc != 2){
+    fprintf(stderr, "Usage: %s index-file\n", argv[0]);
+    exit(1);
+  } 
+
+  Index index = (fileHeader*)loadIndex(argv[1]);
+
+  // printPBI();
+  // printf("%d\n", ((fileHeader*)index)->dim);
+
+  float *query_values = malloc(sizeof(float) * ((fileHeader*)index)->dim);
+
+  numDistances = 0;
+
+  while (true) {
+    int query;
+    int size;
+    bool fixed;
+
+    if(scanf("%[0123456789-.]s", str) == 0){
+      break;
+    }
+
+    // -0 finalize the program
+    if(!strcmp(str, "-0")){
+      break;
+    }
+
+
+    // negative -> KNN
+    if(str[0] == '-'){
+      fixed = false;
+      if (sscanf(str + 1, "%d", &k) == 0) break;
+
+    }
+    // otherwise -> range
+    else {
+      fixed = true;
+      if (sscanf(str, "%f", &r) == 0) break;
+    }
+
+    if (getchar() != ',') break;
+    if (scanf("%[^\n]s", str) == 0) break;
+    if (getchar() != '\n') break;
+
+
+    // we parse the query
+
+    parseQuery(str, query_values, ((fileHeader*)index)->dim);
+
+    // we run the query
+    if (fixed){
+      size = rangeSearch(index, 0, r, true, query_values);
+    } else{
+      r = kNNSearch(index, 0, k, true, query_values);
+      size = k;
+    }
+  
+  }
+
+
+  // printPBI();
 }

@@ -32,7 +32,7 @@ static long long deletions;
 // Candidate element
 typedef struct {
   int id;
-  elementDistance dist;
+  float dist;
 } NNelem;
 
 // Candidate element list
@@ -47,7 +47,7 @@ typedef struct {
 
 typedef struct t_opair {
   int id;
-  elementDistance d;
+  float dist;
 } opair;
 
 

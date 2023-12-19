@@ -22,6 +22,7 @@ typedef struct {
   int id;
   // void *data;
   int *permutation;
+  int spearmanRhoToQuery;
 } Object;
 
 // Structure to store the header of the Index
@@ -46,7 +47,7 @@ static PBI *pbi; // Store all the information of the index
 
 int comparate(const void *a, const void *b);
 void loadObjects(fileHeader *header, int nPermutans);
-void calculatePermutation(double *distances, int *permutans, int *permutation, int n);
+void calculatePermutation(int *permutation, int n);
 void printPBI();
 
 
