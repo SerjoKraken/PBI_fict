@@ -7,5 +7,5 @@ src/query.out
 src/salida
 src/trie.*
 src/vectors.ascii
-salida
+# salida
 # vectors
