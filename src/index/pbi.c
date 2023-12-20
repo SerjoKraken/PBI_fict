@@ -89,11 +89,11 @@ Index build(char *dbname, int n, int *argc, char ***argv){
   // printf("build index\n");
   loadObjects(header, pbi->nPermutants);
 
-  // for (int i = 0; i < header->n; i++) {
-  //   printf("Object %d ", i);
-  //   printPermutation(pbi->objects[i].permutation, pbi->nPermutants);
-  //   printf("\n");
-  // }
+  for (int i = 0; i < header->n; i++) {
+    printf("Object %d ", i);
+    printPermutation(pbi->objects[i].permutation, pbi->nPermutants);
+    printf("\n");
+  }
   
 
 
