@@ -27,7 +27,7 @@ Index loadIndex(char *filename);
  * range search for query obj with radius r in index S. 
  * it returns how many objects it found. it prints them if show
  * */
-int rangeSearch(Index S, int obj, elementDistance r, bool show, float *object);
+int rangeSearch(Index S, int obj, float r, bool show, float *object);
 
 /*
  * kNN search for query obk in index S. It return the distance to the

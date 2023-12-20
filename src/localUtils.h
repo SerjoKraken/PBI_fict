@@ -48,14 +48,14 @@ typedef struct {
 typedef struct t_opair {
   int id;
   float dist;
-} opair;
+} RElem;
 
 
 typedef struct t_ret{
-  uint chunk;
-  opair *ret;
-  uint iret;
-} Tret;
+  uint size;
+  RElem *elements;
+  float range;
+} RCandidates;
 
 
 // Creates a NNlist with size k;
@@ -78,12 +78,12 @@ void freeNNList(NNCandidates *list);
 
 
 // Creates a list of answers for range queries
-Tret createRet(uint chunk);
+RCandidates createRet(uint chunk);
 
 // inserts element element in ret if is at most radius from query o
-void insertRet(Tret *ret, int elementId, int o, elementDistance radius);
+void insertRet(RCandidates *ret, int elementId, int o, elementDistance radius);
 
 // insert element in ret
-void insertRet2(Tret *ret, int elementId);
+void insertRet2(RCandidates *ret, int elementId);
 
 #endif // !

@@ -84,6 +84,13 @@ int main(int argc, char *argv[]) {
 
     // we run the query
     if (fixed){
+      printf("RANGE QUERY: %f\n", r);
+
+      for(int i = 0; i < ((fileHeader*)index)->dim; i++){
+        printf("%f ", query_values[i]);
+      }
+      printf("\n");
+
       size = rangeSearch(index, 0, r, true, query_values);
     } else{
       r = kNNSearch(index, 0, k, true, query_values);

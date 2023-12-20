@@ -8,7 +8,7 @@ typedef struct {
   float (*df) (float *u, float *q, int); /* distance function */
 }DB;
 
-static DB db;
+extern DB db;
 
 #define db(p) (db.nums + db.coords * (int)p)
 

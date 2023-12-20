@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 
 
+DB db;
 
 float distance(int u, int q){
   return db.df(db(u), db(q), db.coords);
