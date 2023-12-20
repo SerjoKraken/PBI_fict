@@ -93,9 +93,18 @@ int main(int argc, char *argv[]) {
 
       size = rangeSearch(index, 0, r, true, query_values);
     } else{
+
+      printf("KNN QUERY: %d\n", k);
+
+      for(int i = 0; i < ((fileHeader*)index)->dim; i++){
+        printf("%f ", query_values[i]);
+      }
+      printf("\n");
       r = kNNSearch(index, 0, k, true, query_values);
       size = k;
     }
+
+    printf("-------------\n");
   
   }
 

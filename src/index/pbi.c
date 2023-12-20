@@ -317,12 +317,12 @@ Index loadIndex(char *filename){
   fread(&header->n, sizeof(int), 1, fp);
   fread(&header->dim, sizeof(int), 1, fp);
 
-  printf("header->n %d\n", header->n);
-  printf("header->dim %d\n", header->dim);
+  // printf("header->n %d\n", header->n);
+  // printf("header->dim %d\n", header->dim);
 
   fread(&pbi->nPermutants, sizeof(int), 1, fp);
 
-  printf("pbi->nPermutants %d\n", pbi->nPermutants);
+  // printf("pbi->nPermutants %d\n", pbi->nPermutants);
 
 
   pbi->permutans = malloc(sizeof(int) * pbi->nPermutants);
@@ -331,7 +331,7 @@ Index loadIndex(char *filename){
 
   for(i = 0; i < pbi->nPermutants; i++){
     fread(&pbi->permutans[i], sizeof(int), 1, fp);
-    printf("%d ", pbi->permutans[i]);
+    // printf("%d ", pbi->permutans[i]);
   }
   printf("\n");
 
@@ -637,7 +637,6 @@ int rangeSearch(Index S, int obj, float r, bool show, float *object){
 
   quicksort_db_float(distances_db, ids, n);
 
-  printf("-------------\n");
 
   // for(i = 0; i < n; i++){
   //   printf("ids[%d] = %d, distances_db[%d] = %f\n", i, ids[i], i, distances_db[i]);

@@ -8,4 +8,4 @@ src/salida
 src/trie.*
 src/vectors.ascii
 salida
-vectors
+# vectors
