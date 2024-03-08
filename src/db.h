@@ -5,12 +5,14 @@ typedef struct {
   float *nums;
   int nnums;
   int coords;
-  float (*df) (float *u, float *q, int); /* distance function */
-}DB;
+  float (*df)(float *u, float *q, int); /* distance function */
+} DB;
 
 extern DB db;
 
 #define db(p) (db.nums + db.coords * (int)p)
+#define NewObj 0
+#define NullObj (-1)
 
 int openDB(char *name);
 void closeDB(void);

@@ -1,26 +1,28 @@
+#include "db.h"
+#include "index/index.h"
+#include "index/pbi.h"
 #include <stdio.h>
 #include <stdlib.h>
-// #include "db.h"
-// #include "index/index.h"
-#include "db.h"
-#include "index/pbi.h"
-#include "string.h"
+// #include "index/pbi.h"
+
+//      0           1           2             3           4
+// ./index.out <data file> <index name> <n elements> < permutants>
 
 int main(int argc, char *argv[]) {
-  // atoi
-  // atof
-  // atol
-  // atod
-  // atoll
-  // strtod
 
+  char *dataFile = argv[1];
 
-  Index index = build("vectors.ascii", atoi(argv[1]), &argc, &argv);
+  char *indexFile = argv[2];
+
+  int n = atoi(argv[3]);
+
+  Index index = build(dataFile, n, &argc, &argv);
 
   printf("Index built\n");
 
+  // printPBI();
 
-  saveIndex(index, "index.bin");
+  saveIndex(index, indexFile);
 
   return 0;
 }

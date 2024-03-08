@@ -1,7 +1,6 @@
 #ifndef LOCALUTILS_H
 #define LOCALUTILS_H
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,12 +13,12 @@ typedef int bool;
 #define false 0
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define DISTANCE(a, b) ((a)*(a) + (b)*(b))
+#define DISTANCE(a, b) ((a) * (a) + (b) * (b))
 
 // If the metric space is continous, use float, otherwise use int
 #ifdef CONTINOUS
 typedef float elementDistance;
-#else 
+#else
 typedef int elementDistance;
 #endif
 
@@ -42,7 +41,6 @@ typedef struct {
   int k;
 } NNCandidates;
 
-
 // list of answers for range queries
 
 typedef struct t_opair {
@@ -50,13 +48,11 @@ typedef struct t_opair {
   float dist;
 } RElem;
 
-
-typedef struct t_ret{
-  uint size;
+typedef struct t_ret {
+  int size;
   RElem *elements;
   float range;
 } RCandidates;
-
 
 // Creates a NNlist with size k;
 NNCandidates createNNList(int k);
@@ -66,7 +62,7 @@ void addNNelem(NNCandidates *list, int id, elementDistance dist);
 
 // tells if the distance is out the range of the candidates
 void outNNElem(NNCandidates *list, elementDistance dist);
-  
+
 // prints the list
 void showNNList(NNCandidates *list);
 
@@ -75,7 +71,6 @@ void getRadiusNNList(NNCandidates *list);
 
 // frees the list
 void freeNNList(NNCandidates *list);
-
 
 // Creates a list of answers for range queries
 RCandidates createRet(uint chunk);
