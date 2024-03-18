@@ -9,6 +9,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "../include/priorityQueue.h"
+
 // q = [5, 1, 2, 0, 3, 4]
 
 // u = [2, 5, 1, 0, 4, 3]
@@ -17,7 +19,7 @@ PBI *pbi;
 
 int *inversePermutation(int *permutation, int n) {
   int i;
-  int *inverse = malloc(sizeof(int) * n);
+  int *inverse = (int *)malloc(sizeof(int) * n);
 
   for (i = 0; i < n; i++) {
     inverse[permutation[i]] = i;
@@ -36,6 +38,8 @@ int spearmanRho(int *u, int *q, int n) {
     // we calculate the difference of position between the two vectors
     sum += abs(i - inverse[q[i]]);
   }
+
+  free(inverse);
 
   return sum;
 }
@@ -85,18 +89,15 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
     }
   }
 
-  // printf("build index\n");
   loadObjects(header, pbi->nPermutants);
-
-  for (int i = 0; i < header->n; i++) {
-    printf("Object %d ", i);
-    printPermutation(pbi->objects[i].permutation, pbi->nPermutants);
-    printf("\n");
-  }
 
   return (Index)header;
 }
 
+// distances is an array of distances
+// permutants are the ids of the permutants in the pbi
+// permutation is the permutation array of the object
+// n is the size of the arrays
 void insertSort(float *distances, int *permutants, int *permutation, int n) {
   int i, j, p;
   float td;
@@ -147,59 +148,20 @@ void quicksort(float *distances, int *permutants, int *permutation, int n) {
 
 void loadObjects(fileHeader *h, int nPer) {
   int i, k;
-  // TODO: 20 is a magic number
-  // We use the first 20 elements as permutants
-
-  // printf("db.nnums %d\n", db.nnums);
-  // printf("db.coords %d\n", db.coords);
-  // printf("db.n %d\n", h->n);
 
   float *distances = malloc(sizeof(double) * nPer);
-  // printf("aux %d\n", aux);
   for (i = 0; i < pbi->size; i++) {
     pbi->objects[i].id = i;
 
     for (k = 0; k < nPer; k++) {
       distances[k] = 0;
-      // distances[j] += distance(pbi->permutans[k], j);
-      // distances[k] = db.df(u, q, db.coords);
       distances[k] = distance(pbi->permutans[k], i);
-      // printf("distances[%d] %f\n", k, distances[k]);
-      // quicksort(double *distances, int *permutants, int *permutation, int n);
     }
-    // quicksort(distances, pbi->permutans, pbi->objects[i].permutation, nPer);
+
+    // We should use quicksort instead of insertSort
     insertSort(distances, pbi->permutans, pbi->objects[i].permutation, nPer);
-
-    // printf("[");
-    // for (int j = 0; j < 20; j++) {
-    // printf("%f,", distances[j]);
-    // }
-    // printf("]\n");
-    // printPermutation(pbi->objects[i].permutation, 20);
-
-    // TODO: We need to calculate the distances.
-    // to calculate the order of the permutations
   }
 }
-
-// maybe delete this function
-// void calculatePermutation(int *permutation, int nPer) {
-//   int i, k;
-//
-//   float *distances = malloc(sizeof(double) * nPer);
-//
-//   for (k = 0; k < nPer; k++) {
-//     distances[k] = 0;
-//     // distances[j] += distance(pbi->permutans[k], j);
-//     // distances[k] = db.df(u, q, db.coords);
-//     distances[k] = distance(pbi->permutans[k], i);
-//     // printf("distances[%d] %f\n", k, distances[k]);
-//     // quicksort(double *distances, int *permutants, int *permutation, int
-//     n);
-//   }
-//   // quicksort(distances, pbi->permutans, pbi->objects[i].permutation, nPer);
-//   insertSort(distances, pbi->permutans, pbi->objects[i].permutation, nPer);
-// }
 
 void printPBI() {
   printf("pbi->nPermutants %d\n", pbi->nPermutants);
@@ -252,22 +214,28 @@ void saveIndex(Index index, char *filename) {
   }
 
   header = (fileHeader *)index;
-  // fwrite(header->dbname, strlen(header->dbname) + 1, 1, fp);
+  // printf("%s\n", header->dbname);
+  fwrite(header->dbname, strlen(header->dbname) + 1, 1, fp);
 
-  printf("header->dim %d\n", header->dim);
-
+  // printf("header->n %d\n", header->n);
   fwrite(&header->n, sizeof(int), 1, fp);
+  // printf("header->dim %d\n", header->dim);
   fwrite(&header->dim, sizeof(int), 1, fp);
+  // printf("header->nPermutants %d\n", pbi->nPermutants);
   fwrite(&pbi->nPermutants, sizeof(int), 1, fp);
 
   for (i = 0; i < pbi->nPermutants; i++) {
+    // printf("%d ", pbi->permutans[i]);
     fwrite(&pbi->permutans[i], sizeof(int), 1, fp);
   }
+  // printf("\n");
 
   for (i = 0; i < header->n; i++) {
     for (j = 0; j < pbi->nPermutants; j++) {
       fwrite(&pbi->objects[i].permutation[j], sizeof(int), 1, fp);
+      // printf("%d ", pbi->objects[i].permutation[j]);
     }
+    // printf("\n");
   }
 
   fclose(fp);
@@ -275,7 +243,7 @@ void saveIndex(Index index, char *filename) {
 
 Index loadIndex(char *filename) {
   char str[1024];
-  // char *ptr = str;
+  char *ptr = str;
   int i, j;
   FILE *fp;
   fileHeader *header;
@@ -288,22 +256,15 @@ Index loadIndex(char *filename) {
 
   header = malloc(sizeof(fileHeader));
 
-  // while((*ptr++ = getc(fp)));
-  header->dbname = malloc(strlen(filename) + 1);
-  strcpy(header->dbname, filename);
+  while ((*ptr++ = getc(fp)))
+    ;
+  header->dbname = malloc(ptr - str);
+  strcpy(header->dbname, str);
 
-  // fread(header->dbname, strlen(filename) + 1, 1, fp);
-
-  // strcpy(header->dbname, str);
   fread(&header->n, sizeof(int), 1, fp);
   fread(&header->dim, sizeof(int), 1, fp);
 
-  // printf("header->n %d\n", header->n);
-  // printf("header->dim %d\n", header->dim);
-
   fread(&pbi->nPermutants, sizeof(int), 1, fp);
-
-  // printf("pbi->nPermutants %d\n", pbi->nPermutants);
 
   pbi->permutans = malloc(sizeof(int) * pbi->nPermutants);
 
@@ -311,7 +272,6 @@ Index loadIndex(char *filename) {
 
   for (i = 0; i < pbi->nPermutants; i++) {
     fread(&pbi->permutans[i], sizeof(int), 1, fp);
-    // printf("%d ", pbi->permutans[i]);
   }
   printf("\n");
 
@@ -321,16 +281,15 @@ Index loadIndex(char *filename) {
     for (j = 0; j < pbi->nPermutants; j++) {
       fread(&pbi->objects[i].permutation[j], sizeof(int), 1, fp);
     }
-    // printPermutation(pbi->objects[i].permutation, pbi->nPermutants);
   }
 
   fclose(fp);
-  openDB(filename);
+  openDB(header->dbname);
 
   return (Index)header;
 }
 
-int comparateInt(const void *a, const void *b) {
+int comparateInt(Item a, Item b) {
   int *_a, *_b;
   _a = (int *)a;
   _b = (int *)b;
@@ -370,6 +329,10 @@ bool inPermutans(int value) {
 }
 // we sort the database by the spearman rho similarity
 // n is the number of objects
+//
+// We just have to sort the pbi objects we don't have to change the ids of the
+// objects in the index cause it should be inmutable in the database
+
 void quicksort_db(int n) {
   int i, j, p;
   int temp;
@@ -431,6 +394,7 @@ void quicksort_db(int n) {
 }
 
 void quicksort_db_float(float *distances, int *ids, int n) {
+
   int i, j;
 
   float p;
@@ -461,28 +425,47 @@ void quicksort_db_float(float *distances, int *ids, int n) {
   quicksort_db_float(distances + i, ids + i, n - i);
 }
 
+int comparateNNElems(Item a, Item b) {
+  NNelem *_a, *_b;
+  _a = (NNelem *)a;
+  _b = (NNelem *)b;
+  if (_a->dist < _b->dist)
+    return -1;
+  else if (_a->dist > _b->dist)
+    return 1;
+  else
+    return 0;
+}
+
+void printPQ(PQ *pq) {
+  for (int i = 1; i <= pq->heapSize; i++) {
+    // printf("%d %p\n", *(int *)pq->heap[i], pq->heap[i]);
+    printf("%d %f %p %p\n", ((NNelem *)pq->heap[i])->id,
+           ((NNelem *)pq->heap[i])->dist, pq->heap + i, pq->heap[i]);
+  }
+  printf("\n-------------------------\n");
+}
+
+// we should recieve the percentage of the database we want to look for
 float kNNSearch(Index S, int obj, int k, bool show, float *object) {
 
-  // We obtain the header of the file
   fileHeader *header = (fileHeader *)S;
 
+  float percentages = {0.02, 0.03, 0.05, 0.07, 0.1};
+
   // We calculate the spearman rho distance between the query and the database
-  int *queryPermutation = malloc(sizeof(int) * pbi->nPermutants);
-  float *distances = malloc(sizeof(float) * pbi->nPermutants);
+  int *queryPermutation = (int *)malloc(sizeof(int) * pbi->nPermutants);
+  float *distances = (float *)malloc(sizeof(float) * pbi->nPermutants);
 
   for (int i = 0; i < pbi->nPermutants; i++) {
-    queryPermutation[i] = i;
+    queryPermutation[i] = pbi->permutans[i];
   }
 
   for (int i = 0; i < pbi->nPermutants; i++) {
-    distances[i] = _distance(pbi->permutans[i], object);
+    distances[i] = distance(pbi->permutans[i], NewObj);
   }
 
-  // qsort(
-  // void *base, // pointer to the first element of the array to be sorted
-  // size_t nmemb, // number of elements in the array to be sorted
-  // size_t size, // size in bytes of each element in the array
-  // __compar_fn_t compar); // pointer to a comparison function
+  // we should use quicksort instead of insertSort
   insertSort(distances, pbi->permutans, queryPermutation, pbi->nPermutants);
 
   for (int i = 0; i < header->n; i++) {
@@ -490,14 +473,14 @@ float kNNSearch(Index S, int obj, int k, bool show, float *object) {
         pbi->objects[i].permutation, queryPermutation, pbi->nPermutants);
   }
 
-  quicksort_db(header->n);
+  qsort(pbi->objects, header->n, sizeof(Object), compararateObjects);
 
   // we print the k first elements of the database with the less distance
   // assuming they are actually the k nearest neighbors
   float db_percent = 0.1;
 
-  // we look in the 2% of the database and we add the k nearest objects into the
-  // NNCandidates
+  // we look in the 2% 3% 5% 7% of the database and we add the k nearest objects
+  // into the NNCandidates
   //
 
   // --------------------------------------------------------
@@ -509,7 +492,11 @@ float kNNSearch(Index S, int obj, int k, bool show, float *object) {
 
   int n = header->n * db_percent;
 
-  printf("n %d\n", n);
+  // printf("NNelem size = %lu\n", sizeof(NNelem));
+  PQ *pq = createPQ(n, comparateNNElems, sizeof(NNelem));
+  // printf("pq->sizeItem= %d\n", pq->sizeItem);
+
+  // printf("n %d\n", n);
 
   NNCandidates nn;
   nn.elements = malloc(sizeof(NNelem) * n);
@@ -517,46 +504,42 @@ float kNNSearch(Index S, int obj, int k, bool show, float *object) {
   nn.k = k;
   nn.size = 0;
 
-  int i = 0;
-  int *ids = malloc(sizeof(int) * n);
-  float *distances_db = malloc(sizeof(float) * n);
+  // printf("sizeof(void **) = %lu\n", sizeof(void **));
+  // printf("sizeof(void *) = %lu\n", sizeof(void *));
+  // printf("sizeof(NNelem) = %lu\n", sizeof(NNelem));
+  // printf("sizeof(NNelem *) = %lu\n", sizeof(NNelem *));
+  // printf("sizeof(int) = %lu\n", sizeof(int));
+  // printf("sizeof(int *) = %lu\n", sizeof(int *));
 
-  for (i = 0; i < n; i++) {
-    ids[i] = pbi->objects[i].id;
-    distances_db[i] = _distance(ids[i], object);
+  for (int i = 0; i < n; i++) {
+
+    NNelem *elem = malloc(sizeof(NNelem));
+    elem->id = pbi->objects[i].id;
+    elem->dist = distance(pbi->objects[i].id, NewObj);
+    // printf("elem->id = %d, elem->dist = %f\n", elem->id, elem->dist);
+    insertPQ(pq, elem);
+    printPQ(pq);
   }
 
-  // for(i = 0; i < n; i++){
-  //   printf("ids[%d] = %d, distances_db[%d] = %f\n", i, ids[i], i,
-  //   distances_db[i]);
-  // }
-  // we sort the ids by the distance
-  // Here we should do another strategy
-
-  quicksort_db_float(distances_db, ids, n);
-
-  // for(i = 0; i < n; i++){
-  //   printf("ids[%d] = %d, distances_db[%d] = %f\n", i, ids[i], i,
-  //   distances_db[i]);
-  // }
-
-  for (i = 0; i < n; i++) {
-    nn.elements[i].id = ids[i];
-    nn.elements[i].dist = distances_db[i];
-    nn.size++;
+  for (int i = 0; !isEmptyPQ(pq) && i < k; i++) {
+    NNelem element = *(NNelem *)extractMinPQ(pq);
+    nn.elements[i] = element;
+    printf("NNCandidates[%d] = %d, %f\n", i, element.id, element.dist);
   }
-
-  // print the NNCandidates
-
-  for (int i = 0; i < k; i++) {
-    printf("NNCandidates[%d] = %d, %f\n", i, nn.elements[i].id,
-           nn.elements[i].dist);
-  }
-  // we return the distance of the farthest element to simplify the latest
-  // element
 
   return nn.elements[nn.size - 1].dist;
-  // return 0;
+}
+
+int comparateRElem(Item a, Item b) {
+  RElem *_a, *_b;
+  _a = (RElem *)a;
+  _b = (RElem *)b;
+  if (_a->dist < _b->dist)
+    return -1;
+  else if (_a->dist > _b->dist)
+    return 1;
+  else
+    return 0;
 }
 
 int rangeSearch(Index S, int obj, float r, bool show, float *object) {
@@ -575,7 +558,8 @@ int rangeSearch(Index S, int obj, float r, bool show, float *object) {
   }
 
   for (int i = 0; i < pbi->nPermutants; i++) {
-    distances[i] = _distance(pbi->permutans[i], object);
+    distances[i] = distance(pbi->permutans[i], NewObj);
+    // distances[i] = _distance(pbi->permutans[i], object);
   }
 
   insertSort(distances, pbi->permutans, queryPermutation, pbi->nPermutants);
@@ -595,7 +579,9 @@ int rangeSearch(Index S, int obj, float r, bool show, float *object) {
 
   int n = header->n * db_percent;
 
-  printf("n %d\n", n);
+  PQ *pq = createPQ(n, comparateRElem, sizeof(RElem));
+
+  // printf("n %d\n", n);
 
   RCandidates rc;
   rc.elements = malloc(sizeof(RElem) * n);
@@ -609,7 +595,7 @@ int rangeSearch(Index S, int obj, float r, bool show, float *object) {
 
   for (i = 0; i < n; i++) {
     ids[i] = pbi->objects[i].id;
-    distances_db[i] = _distance(ids[i], object);
+    distances_db[i] = distance(ids[i], NewObj);
   }
 
   // for(i = 0; i < n; i++){
@@ -620,7 +606,8 @@ int rangeSearch(Index S, int obj, float r, bool show, float *object) {
   // we sort the ids by the distance
   // Here we should do another strategy
 
-  quicksort_db_float(distances_db, ids, n);
+  qsort(pbi->objects, header->n, sizeof(Object), compararateObjects);
+  // quicksort_db_float(distances_db, ids, n);
 
   // for(i = 0; i < n; i++){
   //   printf("ids[%d] = %d, distances_db[%d] = %f\n", i, ids[i], i,
@@ -641,6 +628,9 @@ int rangeSearch(Index S, int obj, float r, bool show, float *object) {
     printf("RCandidates[%d] = %d, %f\n", i, rc.elements[i].id,
            rc.elements[i].dist);
   }
+
+  free(ids);
+  free(distances_db);
 
   return rc.size;
 }

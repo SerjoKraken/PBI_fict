@@ -9,3 +9,5 @@ src/trie.*
 src/vectors.ascii
 # salida
 # vectors
+src/include/main.c
+src/include/pq

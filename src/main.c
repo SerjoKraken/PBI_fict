@@ -18,10 +18,6 @@ int main(int argc, char *argv[]) {
 
   Index index = build(dataFile, n, &argc, &argv);
 
-  printf("Index built\n");
-
-  // printPBI();
-
   saveIndex(index, indexFile);
 
   return 0;

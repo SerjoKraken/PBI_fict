@@ -10,6 +10,7 @@ typedef struct PriorityQueue {
   int heapSize;               // Current size of the heap
   int capacity;               // Max size of the heap
   int (*compare)(Item, Item); // function pointer to compare two items
+  int sizeItem;               // Size of the Item
 } PQ;
 
 /* Create a new priority Queue */
@@ -33,4 +34,4 @@ void printPQ(PQ *pq);
 int isEmptyPQ(PQ *pq);
 
 /* Increase the capacity of the priority queue */
-// void increaseCapacityPQ(PQ *pq, int size);
+void increaseCapacityPQ(PQ *pq, int size);

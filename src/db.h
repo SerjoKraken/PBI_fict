@@ -2,9 +2,9 @@
 #define DB_H
 
 typedef struct {
-  float *nums;
-  int nnums;
-  int coords;
+  float *nums; /* Coords all together */
+  int nnums;   /* number of vectors (with space for one more) */
+  int coords;  /* Dimensions */
   float (*df)(float *u, float *q, int); /* distance function */
 } DB;
 
