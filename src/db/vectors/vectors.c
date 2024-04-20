@@ -1,9 +1,4 @@
-#ifndef DB_C
-#define DB_C
-
-#include "db.h"
-#include "include/priorityQueue.h"
-#include "localUtils.h"
+#include "vectors.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -71,8 +66,8 @@ int openDB(char *name) {
   // element who it's not in the DB
   // that's why we use a size of db.nnums + 1
   db.nums = malloc((db.nnums + 1) * sizeof(float) * db.coords);
-  fread(db.nums + db.coords, db.nnums * sizeof(float) * db.coords, db.coords,
-        f);
+  fread(db.nums + db.coords + 1, db.nnums * sizeof(float) * db.coords,
+        db.coords, f);
 
   fclose(f);
 
@@ -109,5 +104,3 @@ void printObj(int obj) {
     printf("%f ", p[i]);
   printf("%f\n", p[i]);
 }
-
-#endif

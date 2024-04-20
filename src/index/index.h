@@ -1,12 +1,9 @@
 #ifndef INDEX_H
 #define INDEX_H
 
-#include "../localUtils.h"
+#include "../basics.h"
 
-
-typedef void* Index;
-
-
+typedef void *Index;
 
 // build index
 Index build(char *dbname, int n, int *argc, char ***argv);
@@ -15,25 +12,25 @@ Index build(char *dbname, int n, int *argc, char ***argv);
 Index init(char *dbname, int *argc, char ***argv);
 
 // frees the index and close database if closeDB
-void freeIndex (Index index, bool closeDB);
+void freeIndex(Index index, bool closeDB);
 
 // save index to file
 void saveIndex(Index index, char *filename);
 
 // load Index
-Index loadIndex(char *filename); 
+Index loadIndex(char *filename);
 
 /*
- * range search for query obj with radius r in index S. 
+ * range search for query obj with radius r in index S.
  * it returns how many objects it found. it prints them if show
  * */
-int rangeSearch(Index S, int obj, float r, bool show, float *object);
+int rangeSearch(Index S, int obj, float r, bool show);
 
 /*
  * kNN search for query obk in index S. It return the distance to the
-* farthest object found
-* */
-float kNNSearch(Index S, int obj, int k, bool show, float *objetct);
+ * farthest object found
+ * */
+float kNNSearch(Index S, int obj, int k, bool show);
 
 /*
  * Insert an object obj in the index S.
@@ -48,6 +45,5 @@ void insertObject(Index S, int obj);
  * Used in the dynamic version
  * */
 void deleteObject(Index S, int obj, bool show);
-
 
 #endif // ndef INDEX_H

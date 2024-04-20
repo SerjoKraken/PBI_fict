@@ -30,7 +30,7 @@ PQ *createPQ(int size, int (*compare)(void *, void *), int sizeItem) {
 }
 
 void shiftUp(PQ *pq, int i) {
-  while (i > 1 && pq->compare(pq->heap[i / 2], pq->heap[i]) > 0) {
+  while (i > 1 && pq->compare(pq->heap[i / 2], pq->heap[i]) < 0) {
     swapPQ((pq->heap + i), (pq->heap + i / 2), pq->sizeItem);
     i = i / 2;
   }
@@ -42,10 +42,10 @@ void shiftDown(PQ *pq, int i) {
   int smallest = i;
 
   if (left <= pq->heapSize &&
-      pq->compare(pq->heap[left], pq->heap[smallest]) < 0)
+      pq->compare(pq->heap[left], pq->heap[smallest]) > 0)
     smallest = left;
   if (right <= pq->heapSize &&
-      pq->compare(pq->heap[right], pq->heap[smallest]) < 0)
+      pq->compare(pq->heap[right], pq->heap[smallest]) > 0)
     smallest = right;
 
   if (smallest != i) {
@@ -66,15 +66,17 @@ int insertPQ(PQ *pq, Item item) {
   return 1;
 }
 
-Item extractMinPQ(PQ *pq) {
+Item extractMaxPQ(PQ *pq) {
   if (pq->heapSize == 0)
     return NULL;
 
-  Item min;
+  Item min = malloc(pq->sizeItem);
+
+  // min = pq->heap[pq->heapSize--];
+  memcpy(min, pq->heap[1], pq->sizeItem);
 
   swapPQ(&pq->heap[1], &pq->heap[pq->heapSize], pq->sizeItem);
 
-  min = pq->heap[pq->heapSize--];
   pq->heapSize--;
 
   shiftDown(pq, 1);

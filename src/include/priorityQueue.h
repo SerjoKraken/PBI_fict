@@ -23,7 +23,7 @@ int insertPQ(PQ *pq, Item item);
 Item peekPQ(PQ *pq);
 
 /* Remove the item with the highest priority from the priority queue */
-Item extractMinPQ(PQ *pq);
+Item extractMaxPQ(PQ *pq);
 
 /* Destroy the priority queue */
 void destroyPQ(PQ *pq);
@@ -31,6 +31,7 @@ void destroyPQ(PQ *pq);
 /* Print the priority queue */
 void printPQ(PQ *pq);
 
+/* Check if the priority queue is empty*/
 int isEmptyPQ(PQ *pq);
 
 /* Increase the capacity of the priority queue */

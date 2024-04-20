@@ -3,14 +3,15 @@
 
 typedef struct {
   float *nums; /* Coords all together */
-  int nnums;   /* number of vectors (with space for one more) */
-  int coords;  /* Dimensions */
+  int nnums;  /* number of vectors (with space for one more at the beginning) */
+  int coords; /* Dimensions */
   float (*df)(float *u, float *q, int); /* distance function */
 } DB;
 
 extern DB db;
 
 #define db(p) (db.nums + db.coords * (int)p)
+
 #define NewObj 0
 #define NullObj (-1)
 

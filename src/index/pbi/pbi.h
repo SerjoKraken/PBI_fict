@@ -1,9 +1,9 @@
 #ifndef PBI_H
 #define PBI_H
 
-#include "../db.h"
-#include "../localUtils.h"
-#include "index.h"
+#include "../../db/vectors/vectors.h"
+
+#include "../index.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +36,7 @@ typedef struct {
 typedef struct {
   int nPermutants; // number of permutants
   Object *objects; // objects of the index
-  int *permutans;  // permutants of the index
+  int *permutants; // permutants of the index
   int size;        // size of the index
 } PBI;
 

@@ -1,14 +1,21 @@
 CC = gcc
 
 CFLAGS = -Wall -Wextra -g -lm
-
-INDEX = db.c index/pbi.c main.c
-QUERY = db.c index/pbi.c query.c
+DB_VECTORS = db/vectors/vectors.c
+DB_DOCUMENTS = db/documents/documents.c
+INDEX = index/pbi/pbi.c build.c
+QUERY = index/pbi/pbi.c query.c
 DATA_STRUCTURES = include/priorityQueue.c
 # INCLUDE = -I include/priorityQueue.c
 
-build:
-	gcc $(CFLAGS) $(INDEX) $(DATA_STRUCTURES) -o index.out
+build-vectors:
+	$(CC) $(CFLAGS) $(DB_VECTORS) $(INDEX) $(DATA_STRUCTURES) -o index.out
 
-query:
-	gcc $(CFLAGS) $(QUERY) $(DATA_STRUCTURES) -o query.out
+build-documents:
+	$(CC) $(CFLAGS) $(DB_DOCUMENTS) $(INDEX) $(DATA_STRUCTURES) -o index.out
+
+query-vectors:
+	$(CC) $(CFLAGS) $(DB_VECTORS) $(QUERY) $(DATA_STRUCTURES) -o query.out
+
+query-documents:
+	$(CC) $(CFLAGS) $(DB_DOCUMENTS) $(QUERY) $(DATA_STRUCTURES) -o query.out

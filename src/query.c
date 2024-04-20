@@ -2,11 +2,9 @@
 #include <sys/stat.h>
 #include <sys/times.h>
 #include <sys/types.h>
-#include <time.h>
 
-#include "db.h"
-#include "index/index.h"
-#include "index/pbi.h"
+#include "db/vectors/vectors.h"
+#include "index/pbi/pbi.h"
 #include "string.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,12 +35,10 @@ int main(int argc, char *argv[]) {
 
   Index index = (fileHeader *)loadIndex(argv[1]);
 
-  // printPBI();
+  printPBI();
   // printf("%d\n", ((fileHeader*)index)->dim);
 
   float *query_values = malloc(sizeof(float) * ((fileHeader *)index)->dim);
-
-  numDistances = 0;
 
   while (true) {
     int query;
@@ -97,7 +93,7 @@ int main(int argc, char *argv[]) {
       }
       printf("\n");
 
-      size = rangeSearch(index, 0, r, true, query_values);
+      size = rangeSearch(index, NewObj, r, true);
     } else {
 
       printf("KNN QUERY: %d\n", k);
@@ -106,7 +102,7 @@ int main(int argc, char *argv[]) {
         printf("%f ", *(db(NewObj) + i));
       }
       printf("\n");
-      r = kNNSearch(index, 0, k, true, query_values);
+      r = kNNSearch(index, NewObj, k, true);
       size = k;
     }
 

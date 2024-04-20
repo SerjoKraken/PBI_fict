@@ -1,5 +1,5 @@
-#ifndef LOCALUTILS_H
-#define LOCALUTILS_H
+#ifndef BASICS_H
+#define BASICS_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,10 +23,10 @@ typedef int elementDistance;
 #endif
 
 // number of distance calculated
-static long long numDistances;
+extern long long numDistances;
 
 // number of deletions
-static long long deletions;
+extern long long deletions;
 
 // Candidate element
 typedef struct {
