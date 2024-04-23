@@ -1,5 +1,5 @@
 #include "index/index.h"
-#include "index/pbi/pbi.h"
+// #include "index/pbi/pbi.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 
   Index index = build(dataFile, n, &argc, &argv);
 
-  printPBI();
+  // printPBI();
 
   saveIndex(index, indexFile);
 

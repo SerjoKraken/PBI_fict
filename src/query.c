@@ -4,7 +4,8 @@
 #include <sys/types.h>
 
 #include "db/vectors/vectors.h"
-#include "index/pbi/pbi.h"
+#include "index/index.h"
+// #include "index/pbi/pbi.h"
 #include "string.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,12 +34,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  Index index = (fileHeader *)loadIndex(argv[1]);
-
-  printPBI();
-  // printf("%d\n", ((fileHeader*)index)->dim);
-
-  float *query_values = malloc(sizeof(float) * ((fileHeader *)index)->dim);
+  Index index = loadIndex(argv[1]);
 
   while (true) {
     int query;

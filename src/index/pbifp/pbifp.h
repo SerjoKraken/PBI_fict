@@ -11,15 +11,12 @@
 
 #include "../index.h"
 
-// Function to calculate similarity between two permutations
-// int *a and int *b of size n
-int spearmanRho(int *a, int *b, int n);
+// Structure to store an object, his permutation and the spearman rho value
 
-// Structure to store an object and his permutation
 typedef struct {
   int id; // id of the object we use this to get the data from the db module
   // void *data; we don't store the data cause it's in the db module
-  int *permutation;       // permutation of the object
+  int *permutation;       // permutation of the object it has size = nPermutants
   int spearmanRhoToQuery; // spearman rho value to the query
 } Object;
 
@@ -34,16 +31,21 @@ typedef struct {
 // Pemutant Based Index
 typedef struct {
   int nPermutants; // number of permutants
+  int nFicticious;
   Object *objects; // objects of the index
   int *permutants; // permutants of the index
   int size;        // size of the index
-} PBI;
+} PBIFP;
 
-extern PBI *pbi; // Store all the information of the index
+extern PBIFP *pbifp; // Store all the information of the index
 
 int comparate(const void *a, const void *b);
 void loadObjects(fileHeader *header, int nPermutans);
 void calculatePermutation(int *permutation, int n);
 void printPBI();
+
+// Function to calculate similarity between two permutations
+// int *a and int *b of size n
+int spearmanRho(int *a, int *b, int n);
 
 #endif

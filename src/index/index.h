@@ -1,6 +1,3 @@
-#ifndef INDEX_H
-#define INDEX_H
-
 #include "../basics.h"
 
 typedef void *Index;
@@ -45,5 +42,3 @@ void insertObject(Index S, int obj);
  * Used in the dynamic version
  * */
 void deleteObject(Index S, int obj, bool show);
-
-#endif // ndef INDEX_H
