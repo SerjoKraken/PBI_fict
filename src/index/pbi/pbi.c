@@ -17,7 +17,7 @@ PBI *pbi;
 
 int *inversePermutation(int *permutation, int n) {
   int i;
-  int *inverse = (int *)malloc(sizeof(int) * n);
+  int *inverse = malloc(sizeof(int) * n);
 
   for (i = 0; i < n; i++) {
     inverse[permutation[i]] = i;
@@ -81,11 +81,11 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
     pbi->permutants[i] = permutant;
   }
 
-  for (int i = 0; i < header->n; i++) {
-    pbi->objects[i].id = i;
-    pbi->objects[i].permutation = malloc(sizeof(int) * pbi->nPermutants);
+  for (int i = 1; i <= header->n; i++) {
+    pbi->objects[i - 1].id = i;
+    pbi->objects[i - 1].permutation = malloc(sizeof(int) * pbi->nPermutants);
     for (int j = 0; j < pbi->nPermutants; j++) {
-      pbi->objects[i].permutation[j] = pbi->permutants[j];
+      pbi->objects[i - 1].permutation[j] = pbi->permutants[j];
     }
   }
 
@@ -131,7 +131,7 @@ void loadObjects(fileHeader *h, int nPer) {
   printf("pbi->size %d\n", pbi->size);
 
   for (i = 1; i <= pbi->size; i++) {
-    pbi->objects[i - 1].id = i;
+    // pbi->objects[i - 1].id = i;
     //
     // printf("Object %d\n", i);
     // for (int j = 0; j < h->dim; j++) {
@@ -198,21 +198,23 @@ void saveIndex(Index index, char *filename) {
   }
 
   header = (fileHeader *)index;
-  // printf("%s\n", header->dbname);
+  printf("%s\n", header->dbname);
   fwrite(header->dbname, strlen(header->dbname) + 1, 1, fp);
 
-  // printf("header->n %d\n", header->n);
+  printf("header->n %d\n", header->n);
   fwrite(&header->n, sizeof(int), 1, fp);
-  // printf("header->dim %d\n", header->dim);
+
+  printf("header->dim %d\n", header->dim);
   fwrite(&header->dim, sizeof(int), 1, fp);
-  // printf("header->nPermutants %d\n", pbi->nPermutants);
+
+  printf("header->nPermutants %d\n", pbi->nPermutants);
   fwrite(&pbi->nPermutants, sizeof(int), 1, fp);
 
   for (i = 0; i < pbi->nPermutants; i++) {
-    // printf("%d ", pbi->permutans[i]);
+    printf("%d ", pbi->permutants[i]);
     fwrite(&pbi->permutants[i], sizeof(int), 1, fp);
   }
-  // printf("\n");
+  printf("\n");
 
   for (i = 0; i < header->n; i++) {
     fwrite(&pbi->objects[i].id, sizeof(int), 1, fp);
@@ -244,17 +246,23 @@ Index loadIndex(char *filename) {
   while ((*ptr++ = getc(fp)))
     ;
   header->dbname = malloc(ptr - str);
-
   strcpy(header->dbname, str);
+
+  printf("header->dbname = %s\n", header->dbname);
 
   // we read the n elements
   fread(&header->n, sizeof(int), 1, fp);
   pbi->size = header->n;
+
+  printf("pbi->size = %d\n", pbi->size);
+
   // read the dimension of the database
   fread(&header->dim, sizeof(int), 1, fp);
+  printf("header->dim = %d\n", header->dim);
 
   // read the number of permutants
   fread(&pbi->nPermutants, sizeof(int), 1, fp);
+  printf("pbi->nPermutants = %d\n", pbi->nPermutants);
 
   pbi->permutants = malloc(sizeof(int) * pbi->nPermutants);
   pbi->objects = malloc(sizeof(Object) * header->n);
@@ -262,16 +270,27 @@ Index loadIndex(char *filename) {
   // read the list with permutants
   for (i = 0; i < pbi->nPermutants; i++) {
     fread(&pbi->permutants[i], sizeof(int), 1, fp);
+    printf("pbi->permutants[%d] = %d\n", i, pbi->permutants[i]);
   }
+
+  printf("\n");
 
   // we read each object with id and permutation
   for (i = 0; i < header->n; i++) {
     // pbi->objects[i].id = i;
     fread(&(pbi->objects[i].id), sizeof(int), 1, fp);
+    printf("pbi->objects[%d].id = %d\n", i, pbi->objects[i].id);
+
     pbi->objects[i].permutation = malloc(sizeof(int) * pbi->nPermutants);
-    // for (j = 0; j < pbi->nPermutants; j++) {
+
     fread(pbi->objects[i].permutation, sizeof(int), pbi->nPermutants, fp);
-    // }
+    printf("pbi->objects[%d].permutation = {", i);
+
+    for (j = 0; j < pbi->nPermutants; j++) {
+      printf("%d ", pbi->objects[i].permutation[j]);
+    }
+
+    printf("}\n");
   }
 
   fclose(fp);
@@ -440,6 +459,31 @@ void printPQ(PQ *pq) {
 }
 
 // we should recieve the percentage of the database we want to look for
+
+void quicksort_pbi(Object *objects, int size) {
+  Object p;
+  int i, j;
+  if (size < 2)
+    return;
+
+  p = objects[size / 2];
+
+  for (i = 0, j = size - 1;; i++, j--) {
+    while (objects[i].spearmanRhoToQuery < p.spearmanRhoToQuery)
+      i++;
+    while (p.spearmanRhoToQuery < objects[j].spearmanRhoToQuery)
+      j--;
+    if (i >= 1)
+      break;
+    p = objects[i];
+    objects[i] = objects[j];
+    objects[j] = p;
+  }
+
+  quicksort_pbi(objects, i);
+  quicksort_pbi(objects + i, size - i);
+}
+
 float kNNSearch(Index S, int obj, int k, bool show) {
 
   fileHeader *header = (fileHeader *)S;
@@ -447,8 +491,8 @@ float kNNSearch(Index S, int obj, int k, bool show) {
   float percentages = {0.02, 0.03, 0.05, 0.07, 0.1};
 
   // We calculate the spearman rho distance between the query and the database
-  int *queryPermutation = (int *)malloc(sizeof(int) * pbi->nPermutants);
-  float *distances = (float *)malloc(sizeof(float) * pbi->nPermutants);
+  int *queryPermutation = malloc(sizeof(int) * pbi->nPermutants);
+  float *distances = malloc(sizeof(float) * pbi->nPermutants);
 
   for (int i = 0; i < pbi->nPermutants; i++) {
     queryPermutation[i] = pbi->permutants[i];
@@ -467,13 +511,16 @@ float kNNSearch(Index S, int obj, int k, bool show) {
         pbi->objects[i].permutation, queryPermutation, pbi->nPermutants);
   }
 
+  printf("spearman rho calculated\n");
+
   // for (int i = 0; i < header->n; i++) {
   //   printf(
   //       "pbi->objects[%d].id = %d, pbi->objects[%d].spearmanRhoToQuery =
   //       %d\n", i, pbi->objects[i].id, i, pbi->objects[i].spearmanRhoToQuery);
   // }
 
-  qsort(pbi->objects, header->n, sizeof(Object), compararateObjects);
+  // qsort(pbi->objects, pbi->size, sizeof(Object), compararateObjects);
+  quicksort_pbi(pbi->objects, pbi->size);
   printf("Quicksort\n");
 
   // we print the k first elements of the database with the less distance
@@ -491,9 +538,9 @@ float kNNSearch(Index S, int obj, int k, bool show) {
   //
   // --------------------------------------------------------
 
-  int n = header->n * db_percent;
+  int n = pbi->size * db_percent;
 
-  // printf("NNelem size = %lu\n", sizeof(NNelem));
+  // printf(/* "NNelem size = %lu\n", sizeof(NNelem) */);
   PQ *pq = createPQ(k, comparateNNElems, sizeof(NNelem));
   // printf("pq->sizeItem= %d\n", pq->sizeItem);
   //

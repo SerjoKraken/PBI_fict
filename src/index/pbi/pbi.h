@@ -16,7 +16,9 @@
 int spearmanRho(int *a, int *b, int n);
 
 // Structure to store an object and his permutation
-typedef struct {
+// It has the id of the object, the permutation of the object
+// and the spearman rho value to the query
+typedef struct Object {
   int id; // id of the object we use this to get the data from the db module
   // void *data; we don't store the data cause it's in the db module
   int *permutation;       // permutation of the object
@@ -24,6 +26,8 @@ typedef struct {
 } Object;
 
 // Structure to store the header of the Index
+// It has the name of the database, the number of permutants
+// and dimensions of the objects
 typedef struct {
   char *dbname;
   int n;    // Number of permutants
@@ -32,6 +36,8 @@ typedef struct {
 } fileHeader;
 
 // Pemutant Based Index
+// It has the number of permutants, the objects of the index,
+// permutants of the index and the size of the index
 typedef struct {
   int nPermutants; // number of permutants
   Object *objects; // objects of the index
