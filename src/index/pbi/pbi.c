@@ -20,7 +20,7 @@ int *inversePermutation(int *permutation, int n) {
   int *inverse = malloc(sizeof(int) * n);
 
   for (i = 0; i < n; i++) {
-    inverse[permutation[i]] = i;
+    inverse[permutation[i] - 1] = i;
   }
   // 3 2 0 5 4 1
   return inverse;
@@ -34,7 +34,7 @@ int spearmanRho(int *u, int *q, int n) {
 
   for (i = 0; i < n; i++) {
     // we calculate the difference of position between the two vectors
-    sum += abs(i - inverse[q[i]]);
+    sum += abs(i - inverse[q[i] - 1]);
   }
 
   free(inverse);
@@ -60,6 +60,8 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   header->n = openDB(dbname);
   header->dim = getDB()->coords;
 
+  shuffle(db.nums + db.coords, db.nnums, sizeof(float) * db.coords);
+  writeDB(dbname);
   // printf("nnums %d\n", n);
   // printf("Finish openDB\n");
   if (n && (n < header->n)) {
@@ -74,11 +76,18 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   // the query and 1 to size are the data
   pbi->size = header->n;
 
-  srand(time(NULL));
+  // srand(time(NULL));
+  //
+  // for (int i = 0; i < pbi->nPermutants; i++) {
+  //   unsigned int permutant = rand() % header->n;
+  //   pbi->permutants[i] = permutant;
+  // }
 
-  for (int i = 0; i < pbi->nPermutants; i++) {
-    unsigned int permutant = rand() % header->n;
-    pbi->permutants[i] = permutant;
+  // We have a shuffled DB then we could use first nPermutants objects
+  // of the DB
+
+  for (int i = 1; i <= pbi->nPermutants; i++) {
+    pbi->permutants[i - 1] = i;
   }
 
   for (int i = 1; i <= header->n; i++) {

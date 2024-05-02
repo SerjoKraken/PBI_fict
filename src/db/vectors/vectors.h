@@ -1,6 +1,7 @@
 #ifndef DB_H
 #define DB_H
 
+#include <stdio.h>
 typedef struct {
   float *nums; /* Coords all together */
   int nnums;  /* number of vectors (with space for one more at the beginning) */
@@ -23,5 +24,7 @@ float _distance(int u, float *q);
 int parseObj(char *str);
 void printObj(int obj);
 DB *getDB(void);
+void shuffle(const void *base, size_t nmemb, size_t size);
+void writeDB(char *name);
 
 #endif

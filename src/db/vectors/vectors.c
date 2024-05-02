@@ -1,13 +1,14 @@
 #include "vectors.h"
 
+#include <fcntl.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <string.h>
 #include <sys/stat.h>
 
 DB db;
+int func;
 
 float distance(int u, int q) {
   return db.df((float *)db(u), (float *)db(q), db.coords);
@@ -44,9 +45,45 @@ float distanceInf(float *u, float *q, int k) {
   return max;
 }
 
+void writeDB(char *name) {
+  int file = open(name, O_TRUNC | O_WRONLY | O_CREAT, S_IREAD | S_IWRITE);
+
+  write(file, &func, sizeof(int));
+  write(file, &db.coords, sizeof(int));
+
+  // fwrite(&db.coords, sizeof(int), 1, f);
+  // fwrite(&func, sizeof(int), 1, f);
+
+  for (int i = 1; i <= db.nnums; i++) {
+    for (int j = 0; j < db.coords; j++) {
+      write(file, db.nums + i * db.coords + j, sizeof(float));
+    }
+  }
+
+  close(file);
+}
+
+void shuffle(const void *base, size_t nmemb, size_t size) {
+  char *p = (char *)base;
+  size_t i, n = nmemb * size;
+  char *tmp = malloc(size);
+
+  // We use the index 0 to store the query element in the DB
+  // then we don't shuffle the index 0, it should be between 1 and n
+
+  for (i = 0; i < nmemb; i++) {
+    size_t j = rand() % nmemb;
+    if (i == j)
+      continue;
+    memcpy(tmp, p + i * size, size);
+    memcpy(p + i * size, p + j * size, size);
+    memcpy(p + j * size, tmp, size);
+  }
+  free(tmp);
+}
+
 int openDB(char *name) {
   FILE *f = fopen(name, "rb");
-  int func;
   struct stat sdata;
 
   stat(name, &sdata);
@@ -66,8 +103,11 @@ int openDB(char *name) {
   // element who it's not in the DB
   // that's why we use a size of db.nnums + 1
   db.nums = malloc((db.nnums + 1) * sizeof(float) * db.coords);
-  fread(db.nums + db.coords + 1, db.nnums * sizeof(float) * db.coords,
-        db.coords, f);
+
+  // fread(db.nums + db.coords + 1, db.nnums * sizeof(float) * db.coords,
+  //       db.coords, f);
+  fread(db.nums + db.coords, db.nnums * sizeof(float) * db.coords, db.coords,
+        f);
 
   fclose(f);
 
