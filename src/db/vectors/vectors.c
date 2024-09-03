@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 DB db;
 int func;
@@ -46,23 +47,23 @@ float distanceInf(float *u, float *q, int k) {
 }
 
 void writeDB(char *name) {
-  int file = open(name, O_TRUNC | O_WRONLY | O_CREAT, S_IREAD | S_IWRITE);
+  // we create a new binary file
+  FILE *file = fopen(name, "wb");
 
-  write(file, &func, sizeof(int));
-  write(file, &db.coords, sizeof(int));
 
-  // fwrite(&db.coords, sizeof(int), 1, f);
-  // fwrite(&func, sizeof(int), 1, f);
+  fwrite(&func, sizeof(int), 1, file);
+  fwrite(&db.coords, sizeof(int), 1, file);
 
   for (int i = 1; i <= db.nnums; i++) {
     for (int j = 0; j < db.coords; j++) {
-      write(file, db.nums + i * db.coords + j, sizeof(float));
+      fwrite(db.nums + i * db.coords + j, sizeof(float), 1, file);
     }
   }
 
-  close(file);
+  fclose(file);
 }
 
+// Shuffles the DB elements to obtain random permutants for every index built
 void shuffle(const void *base, size_t nmemb, size_t size) {
   char *p = (char *)base;
   size_t i, n = nmemb * size;

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 //      0           1           2             3           4
-// ./index.out <data file> <index name> <n elements> < permutants>
+// ./index <data file> <index name> <n elements> < permutants>
 // program name, data file, index name (output), n elements, permutants
 //
 // argv[0] = ./index.out

@@ -207,20 +207,20 @@ void saveIndex(Index index, char *filename) {
   }
 
   header = (fileHeader *)index;
-  printf("%s\n", header->dbname);
+  // printf("%s\n", header->dbname);
   fwrite(header->dbname, strlen(header->dbname) + 1, 1, fp);
 
-  printf("header->n %d\n", header->n);
+  // printf("header->n %d\n", header->n);
   fwrite(&header->n, sizeof(int), 1, fp);
 
-  printf("header->dim %d\n", header->dim);
+  // printf("header->dim %d\n", header->dim);
   fwrite(&header->dim, sizeof(int), 1, fp);
 
-  printf("header->nPermutants %d\n", pbi->nPermutants);
+  // printf("header->nPermutants %d\n", pbi->nPermutants);
   fwrite(&pbi->nPermutants, sizeof(int), 1, fp);
 
   for (i = 0; i < pbi->nPermutants; i++) {
-    printf("%d ", pbi->permutants[i]);
+    // printf("%d ", pbi->permutants[i]);
     fwrite(&pbi->permutants[i], sizeof(int), 1, fp);
   }
   printf("\n");
@@ -236,6 +236,8 @@ void saveIndex(Index index, char *filename) {
 
   fclose(fp);
 }
+
+
 
 Index loadIndex(char *filename) {
   char str[1024];
@@ -257,21 +259,21 @@ Index loadIndex(char *filename) {
   header->dbname = malloc(ptr - str);
   strcpy(header->dbname, str);
 
-  printf("header->dbname = %s\n", header->dbname);
+  // printf("header->dbname = %s\n", header->dbname);
 
   // we read the n elements
   fread(&header->n, sizeof(int), 1, fp);
   pbi->size = header->n;
 
-  printf("pbi->size = %d\n", pbi->size);
+  // printf("pbi->size = %d\n", pbi->size);
 
   // read the dimension of the database
   fread(&header->dim, sizeof(int), 1, fp);
-  printf("header->dim = %d\n", header->dim);
+  // printf("header->dim = %d\n", header->dim);
 
   // read the number of permutants
   fread(&pbi->nPermutants, sizeof(int), 1, fp);
-  printf("pbi->nPermutants = %d\n", pbi->nPermutants);
+  // printf("pbi->nPermutants = %d\n", pbi->nPermutants);
 
   pbi->permutants = malloc(sizeof(int) * pbi->nPermutants);
   pbi->objects = malloc(sizeof(Object) * header->n);
@@ -279,27 +281,27 @@ Index loadIndex(char *filename) {
   // read the list with permutants
   for (i = 0; i < pbi->nPermutants; i++) {
     fread(&pbi->permutants[i], sizeof(int), 1, fp);
-    printf("pbi->permutants[%d] = %d\n", i, pbi->permutants[i]);
+    // printf("pbi->permutants[%d] = %d\n", i, pbi->permutants[i]);
   }
 
-  printf("\n");
+  // printf("\n");
 
   // we read each object with id and permutation
   for (i = 0; i < header->n; i++) {
     // pbi->objects[i].id = i;
     fread(&(pbi->objects[i].id), sizeof(int), 1, fp);
-    printf("pbi->objects[%d].id = %d\n", i, pbi->objects[i].id);
+    // printf("pbi->objects[%d].id = %d\n", i, pbi->objects[i].id);
 
     pbi->objects[i].permutation = malloc(sizeof(int) * pbi->nPermutants);
 
     fread(pbi->objects[i].permutation, sizeof(int), pbi->nPermutants, fp);
-    printf("pbi->objects[%d].permutation = {", i);
+    // printf("pbi->objects[%d].permutation = {", i);
 
-    for (j = 0; j < pbi->nPermutants; j++) {
-      printf("%d ", pbi->objects[i].permutation[j]);
-    }
+    // for (j = 0; j < pbi->nPermutants; j++) {
+    //   printf("%d ", pbi->objects[i].permutation[j]);
+    // }
 
-    printf("}\n");
+    // printf("}\n");
   }
 
   fclose(fp);
@@ -513,14 +515,14 @@ float kNNSearch(Index S, int obj, int k, bool show) {
   }
 
   quicksort(distances, queryPermutation, pbi->nPermutants);
-  printf("pemutation sorted\n");
+  // printf("pemutation sorted\n");
 
   for (int i = 0; i < header->n; i++) {
     pbi->objects[i].spearmanRhoToQuery = spearmanRho(
         pbi->objects[i].permutation, queryPermutation, pbi->nPermutants);
   }
 
-  printf("spearman rho calculated\n");
+  // printf("spearman rho calculated\n");
 
   // for (int i = 0; i < header->n; i++) {
   //   printf(
@@ -530,7 +532,7 @@ float kNNSearch(Index S, int obj, int k, bool show) {
 
   // qsort(pbi->objects, pbi->size, sizeof(Object), compararateObjects);
   quicksort_pbi(pbi->objects, pbi->size);
-  printf("Quicksort\n");
+  // printf("Quicksort\n");
 
   // we print the k first elements of the database with the less distance
   // assuming they are actually the k nearest neighbors
@@ -553,12 +555,12 @@ float kNNSearch(Index S, int obj, int k, bool show) {
   PQ *pq = createPQ(k, comparateNNElems, sizeof(NNelem));
   // printf("pq->sizeItem= %d\n", pq->sizeItem);
   //
-  printf("PQ Created\n");
+  // printf("PQ Created\n");
 
   // printf("n %d\n", n);
 
   NNCandidates nn;
-  nn.elements = malloc(sizeof(NNelem) * n);
+  nn.elements = malloc(sizeof(NNelem) * k);
 
   nn.k = k;
   nn.size = 0;
@@ -588,13 +590,17 @@ float kNNSearch(Index S, int obj, int k, bool show) {
 
   int *spearmanRhos = malloc(sizeof(int) * n);
 
-  for (int i = 0; !isEmptyPQ(pq) && i < n; i++) {
+  for (int i = k - 1; !isEmptyPQ(pq) && i >= 0; i--) {
     NNelem element = *(NNelem *)extractMaxPQ(pq);
-    printf("NNCandidates[%d] = %d, %f\n", i, element.id, element.dist);
     nn.elements[i] = element;
   }
 
-  printf("extraction finished\n");
+  for (int i = 0; i < k; i++) {
+    printf("NNCandidates[%d] = %d, %f\n", i, nn.elements[i].id,
+           nn.elements[i].dist);
+  }
+
+  // printf("extraction finished\n");
 
   destroyPQ(pq);
 

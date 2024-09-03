@@ -11,3 +11,8 @@ src/vectors.ascii
 # vectors
 src/include/main.c
 src/include/pq
+build
+data
+src/showcontent.py
+salida
+vectors
