@@ -22,17 +22,13 @@ int main(int argc, char *argv[]) {
             argv[0]);
   }
 
-  char *dataFile = argv[1];
-
+  char *dbname = argv[1];
   char *indexFile = argv[2];
-
   int n = atoi(argv[3]);
 
-  Index index = build(dataFile, n, &argc, &argv);
-
-  // printPBI();
-
+  Index index = build(dbname, n, &argc, &argv);
   saveIndex(index, indexFile);
+  freeIndex(index, false);
 
   return 0;
 }

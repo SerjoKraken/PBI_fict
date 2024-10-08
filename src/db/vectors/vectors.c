@@ -15,7 +15,7 @@ float distance(int u, int q) {
   return db.df((float *)db(u), (float *)db(q), db.coords);
 }
 
-float _distance(int u, float *q) { return db.df(db(u), q, db.coords); }
+/*float _distance(int u, float *q) { return db.df(db(u), q, db.coords); }*/
 
 float distanceL1(float *u, float *q, int k) {
   int i;
@@ -83,6 +83,7 @@ void shuffle(const void *base, size_t nmemb, size_t size) {
   free(tmp);
 }
 
+// Open and load the DB
 int openDB(char *name) {
   FILE *f = fopen(name, "rb");
   struct stat sdata;
@@ -120,11 +121,11 @@ void closeDB(void) {
   db.nums = NULL;
 }
 
-DB *getDB(void) { return &db; }
+DB *getDB(void) { 
+  return &db; 
+}
 
-// This function parse the input
-// and insert the object in the first
-// position available in the DB 0
+// Parse the query string and return the index in the DB
 int parseObj(char *str) {
   float *d = db(NewObj);
   int i, step;
@@ -138,6 +139,8 @@ int parseObj(char *str) {
   return NewObj;
 }
 
+
+// Show the object
 void printObj(int obj) {
   int i;
   float *p = db(obj);

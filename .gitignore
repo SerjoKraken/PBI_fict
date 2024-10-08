@@ -1,18 +1,8 @@
-src/index/vectors.ascii
-src/a
-src/index.bin
-src/index.out
-src/pbi_loaded.bin
-src/query.out
-src/salida
 src/trie.*
-src/vectors.ascii
-# salida
-# vectors
 src/include/main.c
 src/include/pq
 build
 data
 src/showcontent.py
-salida
-vectors
+queries
+output

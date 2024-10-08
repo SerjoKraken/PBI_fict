@@ -50,6 +50,6 @@ extern PBI *pbi; // Store all the information of the index
 int comparate(const void *a, const void *b);
 void loadObjects(fileHeader *header, int nPermutans);
 void calculatePermutation(int *permutation, int n);
-void printPBI();
+void printPBI(Index S);
 
 #endif

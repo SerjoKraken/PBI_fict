@@ -10,14 +10,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void parseQuery(char *p, float *query, int dim) {
-  int i, step;
-  for (i = 0; i < dim - 1; i++) {
-    sscanf(p, "%f,%n", query + i, &step);
-    p += step;
-  }
-  sscanf(p, "%f", query + i);
-}
+/*void parseQuery(char *p, float *query, int dim) {*/
+/*  int i, step;*/
+/*  for (i = 0; i < dim - 1; i++) {*/
+/*    sscanf(p, "%f,%n", query + i, &step);*/
+/*    p += step;*/
+/*  }*/
+/*  sscanf(p, "%f", query + i);*/
+/*}*/
 
 int main(int argc, char *argv[]) {
   char str[1024];
@@ -34,7 +34,14 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
+
+  fprintf(stderr, "reading index\n");
+
   Index index = loadIndex(argv[1]);
+
+  stat(argv[1], &sdata);
+  fprintf(stderr, "read %lli bytes\n", 
+          (long long)sdata.st_size);
 
   while (true) {
     int query;
@@ -74,36 +81,31 @@ int main(int argc, char *argv[]) {
     // we parse the query and store it in the db
 
     // parseQuery(str, query_values, ((fileHeader*)index)->dim);
-    parseObj(str);
+    query = parseObj(str);
 
     // we run the query
+    
+    numQueries++;
     if (fixed) {
-      printf("RANGE QUERY: %f\n", r);
-
-      // for (int i = 0; i < ((fileHeader *)index)->dim; i++) {
-      //   printf("%f ", query_values[i]);
-      // }
-
-      for (int i = 0; i < db.coords; i++) {
-        printf("%f ", *(db(NewObj) + i));
-      }
-      printf("\n");
-
-      size = rangeSearch(index, NewObj, r, true);
+      times(&t1);
+      size = rangeSearch(index, query, r, true);
+      times(&t2);
+      fprintf(stdout, "%i objects found\n", size);
     } else {
-
-      printf("KNN QUERY: %d\n", k);
-
-      for (int i = 0; i < db.coords; i++) {
-        printf("%f ", *(db(NewObj) + i));
-      }
-      printf("\n");
-      r = kNNSearch(index, NewObj, k, true);
+      times(&t1);
+      r = kNNSearch(index, query, k, true);
       size = k;
+      times(&t2);
+      fprintf(stdout, "kNNs at distance %f\n", r);
     }
 
-    printf("-------------\n");
   }
 
-  // printPBI();
+  fprintf(stdout, "Total distances per query: %f\n", 
+          numDistances / (float)numQueries);
+  fprintf(stdout , "freeing...\n");
+  freeIndex(index, true);
+  fprintf(stdout, "done\n");
+
+  return 0;
 }
