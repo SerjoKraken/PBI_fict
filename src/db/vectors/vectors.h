@@ -34,7 +34,6 @@ int openDB(char *name);
 void closeDB(void);
 
 float distance(int u, int q);
-float _distance(int u, float *q);
 
 /*
  * This function parse the input
@@ -52,17 +51,5 @@ void printObj(int obj);
 /* Get DB */
 DB *getDB(void);
 
-/* Shuffle the DB*/
-void shuffle(const void *base, size_t nmemb, size_t size);
-
-
-/*
- * Write DB
- * This is used for keep the order when we read
- * because we shuffle the DB when we read the data
- * and we want to keep this order when we compare
- * the recovery percentage against exact algorithms
- * */
-void writeDB(char *name);
 
 #endif

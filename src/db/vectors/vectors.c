@@ -15,7 +15,6 @@ float distance(int u, int q) {
   return db.df((float *)db(u), (float *)db(q), db.coords);
 }
 
-/*float _distance(int u, float *q) { return db.df(db(u), q, db.coords); }*/
 
 float distanceL1(float *u, float *q, int k) {
   int i;
@@ -32,7 +31,7 @@ float distanceL2(float *u, float *q, int k) {
   for (i = 0; i < k; i++) {
     total += (u[i] - q[i]) * (u[i] - q[i]);
   }
-  return total;
+  return sqrt(total);
 }
 
 float distanceInf(float *u, float *q, int k) {
@@ -46,42 +45,6 @@ float distanceInf(float *u, float *q, int k) {
   return max;
 }
 
-void writeDB(char *name) {
-  // we create a new binary file
-  FILE *file = fopen(name, "wb");
-
-
-  fwrite(&func, sizeof(int), 1, file);
-  fwrite(&db.coords, sizeof(int), 1, file);
-
-  for (int i = 1; i <= db.nnums; i++) {
-    for (int j = 0; j < db.coords; j++) {
-      fwrite(db.nums + i * db.coords + j, sizeof(float), 1, file);
-    }
-  }
-
-  fclose(file);
-}
-
-// Shuffles the DB elements to obtain random permutants for every index built
-void shuffle(const void *base, size_t nmemb, size_t size) {
-  char *p = (char *)base;
-  size_t i, n = nmemb * size;
-  char *tmp = malloc(size);
-
-  // We use the index 0 to store the query element in the DB
-  // then we don't shuffle the index 0, it should be between 1 and n
-
-  for (i = 0; i < nmemb; i++) {
-    size_t j = rand() % nmemb;
-    if (i == j)
-      continue;
-    memcpy(tmp, p + i * size, size);
-    memcpy(p + i * size, p + j * size, size);
-    memcpy(p + j * size, tmp, size);
-  }
-  free(tmp);
-}
 
 // Open and load the DB
 int openDB(char *name) {
@@ -98,6 +61,7 @@ int openDB(char *name) {
   } else if (func == 3) {
     db.df = distanceInf;
   }
+
 
   fread(&db.coords, sizeof(int), 1, f);
   db.nnums = (sdata.st_size - 2 * sizeof(int)) / sizeof(float) / db.coords;
@@ -145,6 +109,6 @@ void printObj(int obj) {
   int i;
   float *p = db(obj);
   for (i = 0; i < db.coords - 1; i++)
-    printf("%f ", p[i]);
+    printf("%f,", p[i]);
   printf("%f\n", p[i]);
 }

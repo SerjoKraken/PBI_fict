@@ -90,22 +90,22 @@ int main(int argc, char *argv[]) {
       times(&t1);
       size = rangeSearch(index, query, r, true);
       times(&t2);
-      fprintf(stdout, "%i objects found\n", size);
+      fprintf(stderr, "%i objects found\n", size);
     } else {
       times(&t1);
       r = kNNSearch(index, query, k, true);
       size = k;
       times(&t2);
-      fprintf(stdout, "kNNs at distance %f\n", r);
+      fprintf(stderr, "kNNs at distance %f\n", r);
     }
 
   }
 
-  fprintf(stdout, "Total distances per query: %f\n", 
+  fprintf(stderr, "Total distances per query: %f\n", 
           numDistances / (float)numQueries);
-  fprintf(stdout , "freeing...\n");
+  fprintf(stderr , "freeing...\n");
   freeIndex(index, true);
-  fprintf(stdout, "done\n");
+  fprintf(stderr, "done\n");
 
   return 0;
 }
