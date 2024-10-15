@@ -336,41 +336,14 @@ void quicksort_db(int n) {
     if (i >= j)
       break;
 
-    if (inPermutans(pbi->objects[i].id) == true) {
-      // swap the value id in the list of permutants
-      for (int k = 0; k < pbi->nPermutants; k++) {
-        if (pbi->permutants[k] == pbi->objects[i].id) {
-          pbi->permutants[k] = pbi->objects[j].id;
-        }
-      }
-    }
-
-    if (inPermutans(pbi->objects[i].id) == true) {
-      // swap the value id in the list of permutants
-      for (int k = 0; k < pbi->nPermutants; k++) {
-        if (pbi->permutants[k] == pbi->objects[j].id) {
-          pbi->permutants[k] = pbi->objects[i].id;
-        }
-      }
-    }
-
-    temp = pbi->objects[i].id;
-    pbi->objects[i].id = pbi->objects[j].id;
-    pbi->objects[j].id = temp;
+    /*temp = pbi->objects[i].id;*/
+    /*pbi->objects[i].id = pbi->objects[j].id;*/
+    /*pbi->objects[j].id = temp;*/
 
     t_object = pbi->objects[i];
     pbi->objects[i] = pbi->objects[j];
     pbi->objects[j] = t_object;
 
-    // we have to sort the db by the spearman rho distance too
-
-    // swap_db (int i, int j)
-    for (int k = 0; k < db.coords; k++) {
-      t = db.nums[pbi->objects[i].id * db.coords + k];
-      db.nums[pbi->objects[i].id * db.coords + k] =
-          db.nums[pbi->objects[j].id * db.coords + k];
-      db.nums[pbi->objects[j].id * db.coords + k] = t;
-    }
   }
 
   quicksort_db(i);

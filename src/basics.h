@@ -5,12 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <math.h>
 
 typedef unsigned char byte;
 typedef int bool;
 
 #define true 1
 #define false 0
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define DISTANCE(a, b) ((a) * (a) + (b) * (b))

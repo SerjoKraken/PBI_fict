@@ -6,17 +6,19 @@
 
 #include "../../include/priorityQueue.h"
 
+PBIFP * pbifp;
+
 // q = [5, 1, 2, 0, 3, 4]
 
 // u = [2, 5, 1, 0, 4, 3]
 
 long long numDistances = 0;
+float * distanceEvaluationsSorted = NULL;
 
-PBIFP *pbifp;
 
 int *inversePermutation(int *permutation, int n) {
   int i;
-  int *inverse = (int *)malloc(sizeof(int) * n);
+  int *inverse = malloc(sizeof(int) * n);
 
   for (i = 0; i < n; i++) {
     inverse[permutation[i]] = i;
@@ -27,13 +29,16 @@ int *inversePermutation(int *permutation, int n) {
 
 int spearmanRho(int *u, int *q, int n) {
   int sum = 0;
+  int i;
+
   int *inverse = inversePermutation(u, n);
 
-  for (int i = 0; i < n; i++) {
+  for (i = 0; i < n; i++) {
     sum += abs(i - inverse[q[i]]);
   }
 
   free(inverse);
+
   return sum;
 }
 
@@ -46,11 +51,69 @@ void printPermutation(int *permutation, int n) {
   printf("]\n");
 }
 
+int comparate(const void *a, const void *b) {
+  int *_a, *_b;
+
+  _a = (int *)a;
+  _b = (int *)b;
+
+  return (*_a - *_b);
+}
+
+
+float * generateByDistance(float *distances) {
+  int i;
+  int n = pbifp->nPermutants * pbifp->size;
+  float *result = malloc(sizeof(float) * pbifp->nFicticious);
+  // we look for the first non zero distance
+  for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
+
+  // we calculate the pivot t
+  float t = (distances[n - 1] - distances[i])/((pbifp->nFicticious - 1));
+
+  for (int j  = 0; j < pbifp->nFicticious; j++) {
+    result[j] = t / 2 + t * j;
+  }
+  return result;
+}
+
+float * generateByFrecuency(float *distances) {
+  int i;
+  int n = pbifp->nPermutants * pbifp->size;
+  int nPer = pbifp->nPermutants;
+  float *result = malloc(sizeof(float) * pbifp->nFicticious);
+
+  // we look for the first non zero distance
+  for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
+  int size = (n - i);
+
+  int p = floor((double)size / pbifp->nFicticious);
+
+  for (int j  = 0; j < pbifp->nFicticious; j++) {
+    int index = p / 2 + p * j;
+    result[j] = (distances[index + nPer] + distances[index + 1 + nPer]) / 2;
+  }
+  return result;
+
+}
+
+
 Index build(char *dbname, int n, int *argc, char ***argv) {
+  // ./index <data file> <index name> <n elements> <permutants> <ficticious>
+  // program name, data file, index name (output), n elements, permutants
+  //
+  // argv[0] = ./index.out
+  // argv[1] = <data file>
+  // argv[2] = <index name>
+  // argv[3] = <permutants>
+  // argv[4] = <percentage>
+  // argv[5] = <ficticious permutants> (optional)
+  // argv[6] = <method>
   fileHeader *header = malloc(sizeof(fileHeader));
-  // header->n = n;
+
   header->dbname = malloc(sizeof(char) * strlen(dbname));
-  strcpy((header->dbname), dbname);
+
+  strcpy(header->dbname, dbname);
 
   header->n = openDB(dbname);
   header->dim = getDB()->coords;
@@ -60,24 +123,61 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   }
 
   pbifp = malloc(sizeof(PBIFP));
-  pbifp->nFicticious = atoi((*argv)[5]);
-  pbifp->nPermutants = atoi((*argv)[4]) + pbifp->nFicticious;
-  pbifp->permutants = malloc(sizeof(int) * pbifp->nPermutants);
-  pbifp->objects = malloc(sizeof(Object) * (header->n));
-  pbifp->size = header->n;
+  pbifp->nPermutants = atoi((*argv)[3]);
 
-  srand(time(NULL));
+  percentage = atof((*argv)[4]);
 
-  for (int i = 0; i < pbifp->nPermutants; i++) {
-    unsigned int permutant = rand() % header->n;
-    pbifp->permutants[i] = permutant;
+  // in case we select more permutants than elements in DB
+  if (pbifp->nPermutants > header->n) {
+    pbifp->nPermutants = header->n;
   }
 
-  for (int i = 0; i < header->n; i++) {
-    pbifp->objects[i].id = i;
-    pbifp->objects[i].permutation = malloc(sizeof(int) * pbifp->nPermutants);
+  pbifp->nFicticious = atoi((*argv)[5]);
+
+  pbifp->permutants = malloc(sizeof(int) * (pbifp->nPermutants + pbifp->nFicticious));
+  pbifp->ficticiousDistances = malloc(sizeof(float) * pbifp->nFicticious);
+  pbifp->objects = malloc(sizeof(Object) * (header->n));
+  // we have to consider the index 0 is
+  // the query and 1 to size are the data
+  pbifp->size = header->n;
+
+  distanceEvaluations = malloc(sizeof(float) * (pbifp->size * pbifp->nPermutants));
+  distanceEvaluationsSorted = malloc(sizeof(float) * (pbifp->size * pbifp->nPermutants));
+
+  if (!atoi((*argv)[6]))
+    pbifp->distanceGenerator = generateByDistance;
+  else
+    pbifp->distanceGenerator = generateByFrecuency;
+
+  // We set the random seed
+  srand(time(NULL));
+
+  // We randomly generate the permutants
+  // we have to avoid repetitions
+  int p = 0, x = 0;
+  while(p < pbifp->nPermutants) {
+    int r = rand() % pbifp->size + 1;
+
+    for (x = 0; x < p; x++){
+      if (pbifp->permutants[x] == r) {
+        break;
+      }
+    }
+
+    if (x == p) {
+      pbifp->permutants[p++] = r;
+    }
+  }
+
+  // We sort the permutants
+  qsort(pbifp->permutants, pbifp->nPermutants, sizeof(int), comparate);
+
+  for (int i = 1; i <= header->n; i++) {
+    pbifp->objects[i - 1].id = i;
+    pbifp->objects[i - 1].permutation = malloc(sizeof(int) * pbifp->nPermutants);
     for (int j = 0; j < pbifp->nPermutants; j++) {
-      pbifp->objects[i].permutation[j] = pbifp->permutants[j];
+      pbifp->objects[i - 1].permutation[j] = j;
+      /*pbi->objects[i - 1].permutation[j] = pbi->permutants[j];*/
     }
   }
 
@@ -111,43 +211,70 @@ void quicksort(float *distances, int *permutation, int n) {
     permutation[i] = permutation[j];
     permutation[j] = tp;
   }
+
   quicksort(distances, permutation, i);
-  quicksort(distances + i, permutation, n - i);
+  quicksort(distances, permutation, n - i);
 }
 
 void loadObjects(fileHeader *h, int nPer) {
   int i, k;
 
-  float *distances = malloc(sizeof(double) * nPer);
-
-  printf("pbi->size %d\n", pbifp->size);
+  float *distances = malloc(sizeof(double) * (nPer + pbifp->nFicticious));
 
   for (i = 1; i <= pbifp->size; i++) {
-    pbifp->objects[i - 1].id = i;
-
     for (k = 0; k < nPer; k++) {
+      /*distances[k] = distance(pbifp->permutants[pbifp->objects[i - 1].permutation[k]], i);*/
       distances[k] = distance(pbifp->permutants[k], i);
+      // Save the distances evaluation for every permutants
+      // until we have the generated distances
+      distanceEvaluationsSorted[(i - 1) * nPer + k] =
+      distanceEvaluations[(i - 1) * nPer + k] = distances[k];
       numDistances++;
     }
-    quicksort(distances, pbifp->objects[i - 1].permutation, nPer);
+
+    // we dont have to sort here
+    // we sort when we already have the generated distances
+    /*quicksort(distances, pbifp->objects[i - 1].permutation, nPer);*/
   }
+
+  qsort(distanceEvaluationsSorted, nPer * pbifp->size, sizeof(float), comparate);
+
+  pbifp->ficticiousDistances = pbifp->distanceGenerator(distanceEvaluationsSorted);
+
+
+  for (i = 0; i < pbifp->size; i++) {
+    // we copy the permutant distance to the object i
+    memcpy(distances, distanceEvaluations + i * nPer, nPer * sizeof(float));
+    // we copy the ficticious distance to the object i
+    memcpy(distances + nPer, pbifp->ficticiousDistances, pbifp->nFicticious * sizeof(float));
+
+    quicksort(distances, pbifp->objects[i].permutation, pbifp->nPermutantsTotal);
+  }
+
+  free(distances);
+  free(distanceEvaluations);
+  free(distanceEvaluationsSorted);
 }
 
-void printPBI() {
-  printf("pbi->size %d\n", pbifp->size);
-  printf("pbi->nPermutants %d\n", pbifp->nPermutants);
-  printf("pbi->permutans\n");
+void printIndex(Index S) {
+  printf("%s\n", ((fileHeader *)S)->dbname);
+  printf("%d\n", pbifp->size);
+  printf("%d\n", ((fileHeader *)S)->dim);
+  printf("%d\n", pbifp->nPermutants);
+
   for (int i = 0; i < pbifp->nPermutants; i++) {
-    printf("%d ", pbifp->permutants[i]);
+    (i < pbifp->nPermutants - 1) ? 
+      printf("%d,", pbifp->permutants[i]) :
+      printf("%d\n", pbifp->permutants[i]);
   }
 
-  printf("\n");
   for (int i = 0; i < pbifp->size; i++) {
-    printf("Object %d\n", pbifp->objects[i].id);
+    printf("%d\n", pbifp->objects[i].id);
     for (int j = 0; j < pbifp->nPermutants; j++) {
-      printf("%d ", pbifp->objects[i].permutation[j]);
+      (j < pbifp->nPermutants - 1) ? 
+        printf("%d,", pbifp->objects[i].permutation[j]) :
+        printf("%d\n", pbifp->objects[i].permutation[j]);
     }
-    printf("\n");
   }
 }
 
@@ -157,10 +284,10 @@ void swap(int *a, int *b) {
   *b = t;
 }
 
-void freeIndex(Index index, bool closeDB) {
+void freeIndex(Index index, bool closedb) {
   fileHeader *header = (fileHeader *)index;
-  if (closeDB) {
-    // closeDB();
+  if (closedb) {
+    closeDB();
   }
   free(pbifp->permutants);
   for (int i = 0; i < header->n; i++) {
@@ -184,34 +311,36 @@ void saveIndex(Index index, char *filename) {
     exit(1);
   }
 
-  header = (fileHeader *)index;
-  // printf("%s\n", header->dbname);
   fwrite(header->dbname, strlen(header->dbname) + 1, 1, fp);
-
-  // printf("header->n %d\n", header->n);
   fwrite(&header->n, sizeof(int), 1, fp);
-  // printf("header->dim %d\n", header->dim);
   fwrite(&header->dim, sizeof(int), 1, fp);
-  // printf("header->nPermutants %d\n", pbi->nPermutants);
   fwrite(&pbifp->nPermutants, sizeof(int), 1, fp);
+  fwrite(&pbifp->nFicticious, sizeof(int), 1, fp);
 
-  for (i = 0; i < pbifp->nPermutants; i++) {
-    // printf("%d ", pbi->permutans[i]);
-    fwrite(&pbifp->permutants[i], sizeof(int), 1, fp);
-  }
-  // printf("\n");
+  fwrite(&pbifp->permutants, sizeof(int), pbifp->nPermutants, fp);
+  fwrite(&pbifp->ficticiousDistances, sizeof(float), pbifp->nFicticious, fp);
 
   for (i = 0; i < header->n; i++) {
     fwrite(&pbifp->objects[i].id, sizeof(int), 1, fp);
-    for (j = 0; j < pbifp->nPermutants; j++) {
-      fwrite(&pbifp->objects[i].permutation[j], sizeof(int), 1, fp);
-      // printf("%d ", pbi->objects[i].permutation[j]);
-    }
-    // printf("\n");
+    fwrite(&pbifp->objects[i].permutation, sizeof(int), pbifp->nPermutants, fp);
   }
+
+  // name of the file
+  // number of DB elements
+  // dimension
+  // number of permutations
+  // number of ficticious distances
+  // permutations
+  // ficticious distances
+  //
+  // for each object
+    // id
+    // permutations
 
   fclose(fp);
 }
+
+
 
 Index loadIndex(char *filename) {
   char str[1024];
@@ -228,37 +357,43 @@ Index loadIndex(char *filename) {
 
   header = malloc(sizeof(fileHeader));
 
-  while ((*ptr++ = getc(fp)))
-    ;
+  // name of the file
+  // number of DB elements
+  // dimension
+  // number of permutations
+  // number of ficticious distances
+  // permutants
+  // ficticious distances
+  //
+  // for each object
+    // id
+    // permutations
+ 
+  while ((*ptr++ = getc(fp)));
   header->dbname = malloc(ptr - str);
-
   strcpy(header->dbname, str);
 
-  // we read the n elements
   fread(&header->n, sizeof(int), 1, fp);
   pbifp->size = header->n;
-  // read the dimension of the database
+
   fread(&header->dim, sizeof(int), 1, fp);
 
-  // read the number of permutants
   fread(&pbifp->nPermutants, sizeof(int), 1, fp);
-
   pbifp->permutants = malloc(sizeof(int) * pbifp->nPermutants);
-  pbifp->objects = malloc(sizeof(Object) * header->n);
 
-  // read the list with permutants
-  for (i = 0; i < pbifp->nPermutants; i++) {
-    fread(&pbifp->permutants[i], sizeof(int), 1, fp);
-  }
+  fread(&pbifp->nFicticious, sizeof(int), 1, fp);
+  pbifp->ficticiousDistances = malloc(sizeof(float) * pbifp->nFicticious);
+
+  fread(&pbifp->permutants, sizeof(int), pbifp->nPermutants, fp);
+  fread(&pbifp->ficticiousDistances, sizeof(float), pbifp->nFicticious, fp);
+
+  pbifp->objects = malloc(sizeof(Object) * header->n);
 
   // we read each object with id and permutation
   for (i = 0; i < header->n; i++) {
-    // pbi->objects[i].id = i;
     fread(&(pbifp->objects[i].id), sizeof(int), 1, fp);
     pbifp->objects[i].permutation = malloc(sizeof(int) * pbifp->nPermutants);
-    // for (j = 0; j < pbi->nPermutants; j++) {
     fread(pbifp->objects[i].permutation, sizeof(int), pbifp->nPermutants, fp);
-    // }
   }
 
   fclose(fp);
@@ -267,16 +402,9 @@ Index loadIndex(char *filename) {
   return (Index)header;
 }
 
-int comparate(const void *a, const void *b) {
-  int *_a, *_b;
 
-  _a = (int *)a;
-  _b = (int *)b;
 
-  return (*_a - *_b);
-}
-
-int compararateObjects(const void *a, const void *b) {
+int comparateObjects(const void *a, const void *b) {
   Object *_a, *_b;
 
   _a = (Object *)a;
@@ -285,7 +413,7 @@ int compararateObjects(const void *a, const void *b) {
   return (_a->spearmanRhoToQuery - _b->spearmanRhoToQuery);
 }
 
-bool inPermutans(int value) {
+bool inPermutants(int value) {
   for (int i = 0; i < pbifp->nPermutants; i++) {
     if (pbifp->permutants[i] == value) {
       return true;
@@ -293,8 +421,54 @@ bool inPermutans(int value) {
   }
   return false;
 }
+// we sort the database by the spearman rho similarity
+// n is the number of objects
+//
+// We just have to sort the pbi objects we don't have to change the ids of the
+// objects in the index cause it should be inmutable in the database
+
+void quicksort_db(int n) {
+  int i, j, p;
+  float t;
+  Object t_object;
+
+  if (n < 2)
+    return;
+
+  p = pbifp->objects[n / 2].spearmanRhoToQuery;
+
+  for (i = 0, j = n - 1;; i++, j--) {
+    while (pbifp->objects[i].spearmanRhoToQuery < p)
+      i++;
+    while (p < pbifp->objects[j].spearmanRhoToQuery)
+      j--;
+    if (i >= j)
+      break;
+
+    t_object = pbifp->objects[i];
+    pbifp->objects[i] = pbifp->objects[j];
+    pbifp->objects[j] = t_object;
+
+  }
+
+  quicksort_db(i);
+  quicksort_db(n - i);
+}
+
 
 int comparateNNElems(Item a, Item b) {
+  NNelem *_a, *_b;
+  _a = (NNelem *)a;
+  _b = (NNelem *)b;
+  if (_a->dist < _b->dist)
+    return -1;
+  else if (_a->dist > _b->dist)
+    return 1;
+  else
+    return 0;
+}
+
+int comparateNNElems2(const void* a, const void* b) {
   NNelem *_a, *_b;
   _a = (NNelem *)a;
   _b = (NNelem *)b;
@@ -315,80 +489,47 @@ void printPQ(PQ *pq) {
   printf("\n-------------------------\n");
 }
 
-// we should recieve the percentage of the database we want to look for
 float kNNSearch(Index S, int obj, int k, bool show) {
 
   fileHeader *header = (fileHeader *)S;
-
-  float percentages = {0.02, 0.03, 0.05, 0.07, 0.1};
+  float percentages[] = {0.02, 0.03, 0.05, 0.07, 0.1};
 
   // We calculate the spearman rho distance between the query and the database
-  int *queryPermutation = (int *)malloc(sizeof(int) * pbifp->nPermutants);
-  float *distances = (float *)malloc(sizeof(float) * pbifp->nPermutants);
+  int *queryPermutation = malloc(sizeof(int) * pbifp->nPermutants);
+  float *distances = malloc(sizeof(float) * pbifp->nPermutants);
 
+  // if the permutants are the first elements in the db
+  // we could optimize this
   for (int i = 0; i < pbifp->nPermutants; i++) {
-    queryPermutation[i] = pbifp->permutants[i];
-  }
-
-  for (int i = 0; i < pbifp->nPermutants; i++) {
-    distances[i] = distance(pbifp->permutants[i], NewObj);
+    queryPermutation[i] = i;
+    distances[i] = distance(pbifp->permutants[queryPermutation[i]], NewObj);
     numDistances++;
   }
 
   quicksort(distances, queryPermutation, pbifp->nPermutants);
-  printf("pemutation sorted\n");
 
   for (int i = 0; i < header->n; i++) {
     pbifp->objects[i].spearmanRhoToQuery = spearmanRho(
-        pbifp->objects[i].permutation, queryPermutation, pbifp->nPermutants);
+      pbifp->objects[i].permutation, queryPermutation, pbifp->nPermutants);
   }
 
-  // for (int i = 0; i < header->n; i++) {
-  //   printf(
-  //       "pbi->objects[%d].id = %d, pbi->objects[%d].spearmanRhoToQuery =
-  //       %d\n", i, pbi->objects[i].id, i, pbi->objects[i].spearmanRhoToQuery);
-  // }
+  qsort(pbifp->objects, pbifp->size, sizeof(Object), comparateObjects);
 
-  qsort(pbifp->objects, header->n, sizeof(Object), compararateObjects);
-  printf("Quicksort\n");
-
-  // we print the k first elements of the database with the less distance
-  // assuming they are actually the k nearest neighbors
   float db_percent = 0.1;
 
   // we look in the 2% 3% 5% 7% of the database and we add the k nearest objects
   // into the NNCandidates
   //
 
-  // --------------------------------------------------------
-  //
-  // We have to change the way we obtain the k nearest neighbors
-  // It's necessary to use a priority queue
-  //
-  // --------------------------------------------------------
+  int n = pbifp->size * db_percent;
 
-  int n = header->n * db_percent;
-
-  // printf("NNelem size = %lu\n", sizeof(NNelem));
+  // Creation of the priorityQueue
   PQ *pq = createPQ(k, comparateNNElems, sizeof(NNelem));
-  // printf("pq->sizeItem= %d\n", pq->sizeItem);
-  //
-  printf("PQ Created\n");
-
-  // printf("n %d\n", n);
 
   NNCandidates nn;
-  nn.elements = malloc(sizeof(NNelem) * n);
-
+  nn.elements = malloc(sizeof(NNelem) * k);
   nn.k = k;
   nn.size = 0;
-
-  // printf("sizeof(void **) = %lu\n", sizeof(void **));
-  // printf("sizeof(void *) = %lu\n", sizeof(void *));
-  // printf("sizeof(NNelem) = %lu\n", sizeof(NNelem));
-  // printf("sizeof(NNelem *) = %lu\n", sizeof(NNelem *));
-  // printf("sizeof(int) = %lu\n", sizeof(int));
-  // printf("sizeof(int *) = %lu\n", sizeof(int *));
 
   for (int i = 0; i < n; i++) {
     NNelem *elem = malloc(sizeof(NNelem));
@@ -406,22 +547,24 @@ float kNNSearch(Index S, int obj, int k, bool show) {
     }
   }
 
-  for (int i = 0; i < pbifp->size; i++) {
-    printf(
-        "pbi->objects[%d].id = %d, pbi->objects[%d].spearmanRhoToQuery = %d\n",
-        i, pbifp->objects[i].id, i, pbifp->objects[i].spearmanRhoToQuery);
-  }
-
-  for (int i = 0; !isEmptyPQ(pq) && i < n; i++) {
+  for (int i = 0; !isEmptyPQ(pq) && i < k; i++) {
     NNelem element = *(NNelem *)extractMaxPQ(pq);
-    printf("NNCandidates[%d] = %d, %f\n", i, element.id, element.dist);
     nn.elements[i] = element;
+    nn.size++;
+    /*fprintf(stdout, "distance = %f\n", element.dist);*/
   }
+  qsort(nn.elements, nn.size, sizeof(NNelem), comparateNNElems2);
 
-  printf("extraction finished\n");
+  for (int i = 0; i < nn.size; i++) {
+    if(show)
+      printObj(nn.elements[i].id);
+  }
 
   destroyPQ(pq);
+  free(queryPermutation);
+  free(distances);
 
+  // the first element in the NNCandidates has the farthest distance
   return nn.elements[nn.size - 1].dist;
 }
 
@@ -437,78 +580,50 @@ int comparateRElem(Item a, Item b) {
     return 0;
 }
 
+// we calculate the spearman rho distance between the query and the database
+// we sort the database by the spearman rho similarity
+// we show the elements with distance less than r
+// Finally returns the number of candidates in the range r
+//
 int rangeSearch(Index S, int obj, float r, bool show) {
-  // we calculate the spearman rho distance between the query and the database
-  // we sort the database by the spearman rho similarity
-  // we return the elements with distance less than r
-
   fileHeader *header = (fileHeader *)S;
-
-  // We calculate the spearman rho distance between the query and the database
   int *queryPermutation = malloc(sizeof(int) * pbifp->nPermutants);
   float *distances = malloc(sizeof(float) * pbifp->nPermutants);
 
   for (int i = 0; i < pbifp->nPermutants; i++) {
-    queryPermutation[i] = pbifp->permutants[i];
-  }
-
-  for (int i = 0; i < pbifp->nPermutants; i++) {
-    distances[i] = distance(pbifp->permutants[i], NewObj);
+    queryPermutation[i] = i;
+    distances[i] = distance(pbifp->permutants[queryPermutation[i]], NewObj);
     numDistances++;
-    // distances[i] = _distance(pbi->permutans[i], object);
   }
-
   quicksort(distances, queryPermutation, pbifp->nPermutants);
 
   for (int i = 0; i < header->n; i++) {
     pbifp->objects[i].spearmanRhoToQuery = spearmanRho(
-        pbifp->objects[i].permutation, queryPermutation, pbifp->nPermutants);
+      pbifp->objects[i].permutation, queryPermutation, pbifp->nPermutants);
   }
 
-  qsort(pbifp->objects, header->n, sizeof(Object), compararateObjects);
+  qsort(pbifp->objects, header->n, sizeof(Object), comparateObjects);
 
   // We look in a percentage of the database
+  // It should be an argument in this function
   float db_percent = 0.1;
-
   int n = header->n * db_percent;
-
-  RCandidates rc;
-  rc.elements = malloc(sizeof(RElem) * n);
-
-  rc.size = 0;
-  rc.range = r;
-
-  for (int i = 0; i < pbifp->size; i++) {
-    printf(
-        "pbi->objects[%d].id = %d, pbi->objects[%d].spearmanRhoToQuery = %d\n",
-        i, pbifp->objects[i].id, i, pbifp->objects[i].spearmanRhoToQuery);
-  }
+  unsigned count = 0;
 
   for (int i = 0; i < pbifp->size && i < n; i++) {
     float distance_to_query = distance(pbifp->objects[i].id, NewObj);
     numDistances++;
     if (distance_to_query <= r) {
-      rc.elements[rc.size].id = pbifp->objects[i].id;
-      rc.elements[rc.size].dist = distance_to_query;
-      rc.size++;
+      count++;
+      if(show)
+        printObj(pbifp->objects[i].id);
+
     }
   }
-
-  printf("rc.size %d\n", rc.size);
-
-  for (int i = 0; i < rc.size; i++) {
-    printf("RCandidates[%d] = %d, %f\n", i, rc.elements[i].id,
-           rc.elements[i].dist);
-  }
-
-  // free(ids);
-  // free(distances_db);
-
-  return rc.size;
+  free(queryPermutation);
+  free(distances);
+  return count;
 }
-
-// Methods to insert and delete objects
-// It is for the dynamic versions
 
 // void insertObject(Index S, int obj) {}
 

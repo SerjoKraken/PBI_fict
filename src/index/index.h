@@ -2,6 +2,10 @@
 
 typedef void *Index;
 
+// percentage of the DB to look
+extern float percentage;
+
+
 // build index
 Index build(char *dbname, int n, int *argc, char ***argv);
 
