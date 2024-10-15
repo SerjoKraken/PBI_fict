@@ -61,7 +61,6 @@ extern float *distanceEvaluations; // Store all the distances evaluations until 
 int comparate(const void *a, const void *b);
 void loadObjects(fileHeader *header, int nPermutans);
 void calculatePermutation(int *permutation, int n);
-void printIndex(Index S);
 void freeIndex(Index S, bool closeDB);
 
 

@@ -12,14 +12,15 @@
 // argv[2] = <index name>
 // argv[3] = <n elements>
 // argv[4] = <permutants>
-// argv[5] = <percentage>
-// argv[6] = <ficticious permutants> (optional)
+// argv[5] = <ficticious permutants> (optional)
+// argv[6] = <method>
 
 int main(int argc, char *argv[]) {
 
   if (argc < 4) {
-    fprintf(stderr, "Usage: %s <dbname> <indexfile> <size> <permutants>\n",
+    fprintf(stderr, "Usage: %s <dbname> <indexfile> <size> <permutants> \n",
             argv[0]);
+    exit(1);
   }
 
   char *dbname = argv[1];
@@ -27,6 +28,8 @@ int main(int argc, char *argv[]) {
   int n = atoi(argv[3]);
 
   Index index = build(dbname, n, &argc, &argv);
+  printIndex(index);
+
   saveIndex(index, indexFile);
   freeIndex(index, false);
 

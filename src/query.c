@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   int numQueries = 0;
 
   if (argc != 2) {
-    fprintf(stderr, "Usage: %s <index-file> [percentaje]\n", argv[0]);
+    fprintf(stderr, "Usage: %s <index-file> [percentage]\n", argv[0]);
     exit(1);
   }
 

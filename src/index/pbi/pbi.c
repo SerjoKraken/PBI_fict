@@ -176,7 +176,7 @@ void loadObjects(fileHeader *h, int nPer) {
   free(distances);
 }
 
-void printPBI(Index S) {
+void printIndex(Index S) {
   printf("%s\n", ((fileHeader *)S)->dbname);
   printf("%d\n", pbi->size);
   printf("%d\n", ((fileHeader *)S)->dim);

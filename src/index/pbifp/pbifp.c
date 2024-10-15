@@ -13,6 +13,7 @@ PBIFP * pbifp;
 // u = [2, 5, 1, 0, 4, 3]
 
 long long numDistances = 0;
+float * distanceEvaluations = NULL;
 float * distanceEvaluationsSorted = NULL;
 
 
@@ -91,7 +92,7 @@ float * generateByFrecuency(float *distances) {
 
   for (int j  = 0; j < pbifp->nFicticious; j++) {
     int index = p / 2 + p * j;
-    result[j] = (distances[index + nPer] + distances[index + 1 + nPer]) / 2;
+    result[j] = (distances[index + nPer] + distances[index + nPer + 1]) / 2;
   }
   return result;
 
@@ -106,9 +107,8 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   // argv[1] = <data file>
   // argv[2] = <index name>
   // argv[3] = <permutants>
-  // argv[4] = <percentage>
-  // argv[5] = <ficticious permutants> (optional)
-  // argv[6] = <method>
+  // argv[4] = <ficticious permutants>
+  // argv[5] = <method>
   fileHeader *header = malloc(sizeof(fileHeader));
 
   header->dbname = malloc(sizeof(char) * strlen(dbname));
@@ -125,14 +125,15 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   pbifp = malloc(sizeof(PBIFP));
   pbifp->nPermutants = atoi((*argv)[3]);
 
-  percentage = atof((*argv)[4]);
-
   // in case we select more permutants than elements in DB
   if (pbifp->nPermutants > header->n) {
     pbifp->nPermutants = header->n;
   }
 
-  pbifp->nFicticious = atoi((*argv)[5]);
+  if (*argc < 5)
+    pbifp->nFicticious = 0;
+  else
+    pbifp->nFicticious = atoi((*argv)[4]);
 
   pbifp->permutants = malloc(sizeof(int) * (pbifp->nPermutants + pbifp->nFicticious));
   pbifp->ficticiousDistances = malloc(sizeof(float) * pbifp->nFicticious);
@@ -144,7 +145,8 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   distanceEvaluations = malloc(sizeof(float) * (pbifp->size * pbifp->nPermutants));
   distanceEvaluationsSorted = malloc(sizeof(float) * (pbifp->size * pbifp->nPermutants));
 
-  if (!atoi((*argv)[6]))
+  // we have to check the arguments
+  if (!atoi((*argv)[5]))
     pbifp->distanceGenerator = generateByDistance;
   else
     pbifp->distanceGenerator = generateByFrecuency;
@@ -322,7 +324,7 @@ void saveIndex(Index index, char *filename) {
 
   for (i = 0; i < header->n; i++) {
     fwrite(&pbifp->objects[i].id, sizeof(int), 1, fp);
-    fwrite(&pbifp->objects[i].permutation, sizeof(int), pbifp->nPermutants, fp);
+    fwrite(&pbifp->objects[i].permutation, sizeof(int), pbifp->nPermutantsTotal, fp);
   }
 
   // name of the file
@@ -392,8 +394,8 @@ Index loadIndex(char *filename) {
   // we read each object with id and permutation
   for (i = 0; i < header->n; i++) {
     fread(&(pbifp->objects[i].id), sizeof(int), 1, fp);
-    pbifp->objects[i].permutation = malloc(sizeof(int) * pbifp->nPermutants);
-    fread(pbifp->objects[i].permutation, sizeof(int), pbifp->nPermutants, fp);
+    pbifp->objects[i].permutation = malloc(sizeof(int) * pbifp->nPermutantsTotal);
+    fread(pbifp->objects[i].permutation, sizeof(int), pbifp->nPermutantsTotal, fp);
   }
 
   fclose(fp);
@@ -490,9 +492,7 @@ void printPQ(PQ *pq) {
 }
 
 float kNNSearch(Index S, int obj, int k, bool show) {
-
   fileHeader *header = (fileHeader *)S;
-  float percentages[] = {0.02, 0.03, 0.05, 0.07, 0.1};
 
   // We calculate the spearman rho distance between the query and the database
   int *queryPermutation = malloc(sizeof(int) * pbifp->nPermutants);

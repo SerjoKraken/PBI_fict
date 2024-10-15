@@ -4,36 +4,62 @@ CFLAGS = -Wall -Wextra -g -lm
 DB_VECTORS = src/db/vectors/vectors.c
 DB_DOCUMENTS = src/db/documents/documents.c
 DB_STRINGS = src/db/documents/strings.c
-INDEX = src/index/pbi/pbi.c src/build.c
-QUERY = src/index/pbi/pbi.c src/query.c
+BUILD = src/build.c
+QUERY = src/query.c
+PBI = src/index/pbi/pbi.c
+PBIFP = src/index/pbifp/pbifp.c
 DATA_STRUCTURES = src/include/priorityQueue.c
 # INCLUDE = -I include/priorityQueue.c
 
-index-vectors:
-	$(CC) $(CFLAGS) $(DB_VECTORS) $(INDEX) $(DATA_STRUCTURES) -o build/vectors/index
+build-pbi-vectors:
+	$(CC) $(CFLAGS) $(DB_VECTORS) $(BUILD) $(DATA_STRUCTURES) $(PBI) -o build/vectors/build-pbi-vectors
 
-query-vectors:
-	$(CC) $(CFLAGS) $(DB_VECTORS) $(QUERY) $(DATA_STRUCTURES) -o build/vectors/query
-
-
-index-strings:
-	$(CC) $(CFLAGS) $(DB_STRINGS) $(INDEX) $(DATA_STRUCTURES) -o build/strings/index
-
-query-strings:
-	$(CC) $(CFLAGS) $(DB_STRINGS) $(QUERY) $(DATA_STRUCTURES) -o build/strings/query
+query-pbi-vectors:
+	$(CC) $(CFLAGS) $(DB_VECTORS) $(QUERY) $(DATA_STRUCTURES) $(PBI) -o build/vectors/query-pbi-vectors
 
 
-index-documents:
-	$(CC) $(CFLAGS) $(DB_DOCUMENTS) $(INDEX) $(DATA_STRUCTURES) -o build/documents/index
+build-pbi-strings:
+	$(CC) $(CFLAGS) $(DB_STRINGS) $(BUILD) $(DATA_STRUCTURES) $(PBI) -o build/strings/build-pbi-strings
 
-query-documents:
-	$(CC) $(CFLAGS) $(DB_DOCUMENTS) $(QUERY) $(DATA_STRUCTURES) -o build/documents/query
+query-pbi-strings:
+	$(CC) $(CFLAGS) $(DB_STRINGS) $(QUERY) $(DATA_STRUCTURES) $(PBI) -o build/strings/query-pbi-strings
 
 
-all-vectors: index-vectors query-vectors
+build-pbi-documents:
+	$(CC) $(CFLAGS) $(DB_DOCUMENTS) $(BUILD) $(DATA_STRUCTURES) $(PBI) -o build/documents/build-pbi-documents
 
-all-strings: index-strings query-strings
+query-pbi-documents:
+	$(CC) $(CFLAGS) $(DB_DOCUMENTS) $(QUERY) $(DATA_STRUCTURES) $(PBI) -o build/documents/query-pbi-documents
 
-all-documents: index-documents query-documents
+
+build-pbifp-vectors:
+	$(CC) $(CFLAGS) $(DB_VECTORS) $(BUILD) $(DATA_STRUCTURES) $(PBIFP) -o build/vectors/build-pbifp-vectors
+
+query-pbifp-vectors:
+	$(CC) $(CFLAGS) $(DB_VECTORS) $(QUERY) $(DATA_STRUCTURES) $(PBIFP) -o build/vectors/query-pbifp-vectors
+
+
+build-pbifp-strings:
+	$(CC) $(CFLAGS) $(DB_STRINGS) $(BUILD) $(DATA_STRUCTURES) $(PBIFP) -o build/strings/build-pbifp-strings
+
+query-pbifp-strings:
+	$(CC) $(CFLAGS) $(DB_STRINGS) $(QUERY) $(DATA_STRUCTURES) $(PBIFP) -o build/strings/query-pbifp-strings
+
+
+build-pbifp-documents:
+	$(CC) $(CFLAGS) $(DB_STRINGS) $(BUILD) $(DATA_STRUCTURES) $(PBIFP) -o build/documents/build-pbifp-documents
+
+query-pbifp-documents:
+	$(CC) $(CFLAGS) $(DB_STRINGS) $(QUERY) $(DATA_STRUCTURES) $(PBIFP) -o build/documents/query-pbifp-documents
+
+
+all-vectors: build-pbi-vectors query-pbi-vectors \
+	build-pbifp-vectors query-pbifp-vectors
+
+all-strings: build-pbi-strings query-pbi-strings \
+	build-pbifp-strings query-pbifp-strings
+
+all-documents: build-pbi-documents query-pbifp-documents \
+	build-pbifp-documents query-pbifp-documents
 
 
