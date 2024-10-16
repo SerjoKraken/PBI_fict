@@ -39,7 +39,7 @@ typedef struct {
 
 // Pemutant Based Index
 typedef struct {
-  int nPermutantsTotal;
+  int permutationSize;
 
   int nPermutants; // number of permutants
   int *permutants; // permutants of the index
