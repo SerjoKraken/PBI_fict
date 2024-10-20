@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
   int n = atoi(argv[3]);
 
   Index index = build(dbname, n, &argc, &argv);
-  printIndex(index);
 
   saveIndex(index, indexFile);
   freeIndex(index, false);

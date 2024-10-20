@@ -24,6 +24,8 @@ Index loadIndex(char *filename);
 // print Index
 void printIndex(Index S);
 
+void printIndexHeader(Index S);
+
 /*
  * range search for query obj with radius r in index S.
  * it returns how many objects it found. it prints them if show

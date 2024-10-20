@@ -65,15 +65,10 @@ int openDB(char *name) {
 
   fread(&db.coords, sizeof(int), 1, f);
   db.nnums = (sdata.st_size - 2 * sizeof(int)) / sizeof(float) / db.coords;
-  // The index 0 is needed when we search for a
-  // element who it's not in the DB
-  // that's why we use a size of db.nnums + 1
+
   db.nums = malloc((db.nnums + 1) * sizeof(float) * db.coords);
 
-  // fread(db.nums + db.coords + 1, db.nnums * sizeof(float) * db.coords,
-  //       db.coords, f);
-  fread(db.nums + db.coords, db.nnums * sizeof(float) * db.coords, db.coords,
-        f);
+  fread(db.nums + db.coords, db.nnums * sizeof(float) * db.coords, 1, f);
 
   fclose(f);
 

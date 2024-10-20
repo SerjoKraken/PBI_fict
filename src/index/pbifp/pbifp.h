@@ -46,7 +46,6 @@ typedef struct {
 
   int nFicticious;
   float *ficticiousDistances;
-  
 
   Object *objects; // objects of the index
   int size;        // size of the index
@@ -59,7 +58,7 @@ extern float percentage; // percentage of DB to look in the queries
 extern float *distanceEvaluations; // Store all the distances evaluations until we have the ficticious distances
 
 int comparate(const void *a, const void *b);
-void loadObjects(fileHeader *header, int nPermutans);
+void loadObjects(fileHeader *header, int nPermutants);
 void calculatePermutation(int *permutation, int n);
 void freeIndex(Index S, bool closeDB);
 

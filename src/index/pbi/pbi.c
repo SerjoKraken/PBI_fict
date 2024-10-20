@@ -12,6 +12,7 @@
 // u = [2, 5, 1, 0, 4, 3]
 
 long long numDistances = 0;
+float percentage;
 
 PBI *pbi;
 
@@ -67,6 +68,7 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   strcpy(header->dbname, dbname);
 
   header->n = openDB(dbname);
+
   header->dim = getDB()->coords;
 
   /*shuffle(db.nums + db.coords, db.nnums, sizeof(float) * db.coords);*/
@@ -77,9 +79,11 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   }
 
   pbi = malloc(sizeof(PBI));
+
   pbi->nPermutants = atoi((*argv)[4]);
   pbi->permutants = malloc(sizeof(int) * pbi->nPermutants);
   pbi->objects = malloc(sizeof(Object) * (header->n));
+
   // we have to consider the index 0 is
   // the query and 1 to size are the data
   pbi->size = header->n;
@@ -177,10 +181,10 @@ void loadObjects(fileHeader *h, int nPer) {
 }
 
 void printIndex(Index S) {
-  printf("%s\n", ((fileHeader *)S)->dbname);
-  printf("%d\n", pbi->size);
-  printf("%d\n", ((fileHeader *)S)->dim);
-  printf("%d\n", pbi->nPermutants);
+  printf("dbname: %s\n", ((fileHeader *)S)->dbname);
+  printf("size: %d\n", pbi->size);
+  printf("dim: %d\n", ((fileHeader *)S)->dim);
+  printf("nPermutants: %d\n", pbi->nPermutants);
   for (int i = 0; i < pbi->nPermutants; i++) {
     (i < pbi->nPermutants - 1) ? 
       printf("%d,", pbi->permutants[i]) :
@@ -268,9 +272,12 @@ Index loadIndex(char *filename) {
   while ((*ptr++ = getc(fp)));
   header->dbname = malloc(ptr - str);
   strcpy(header->dbname, str);
+
   fread(&header->n, sizeof(int), 1, fp);
   pbi->size = header->n;
+
   fread(&header->dim, sizeof(int), 1, fp);
+
   fread(&pbi->nPermutants, sizeof(int), 1, fp);
   pbi->permutants = malloc(sizeof(int) * pbi->nPermutants);
   pbi->objects = malloc(sizeof(Object) * header->n);

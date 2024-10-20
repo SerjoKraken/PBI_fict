@@ -10,15 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*void parseQuery(char *p, float *query, int dim) {*/
-/*  int i, step;*/
-/*  for (i = 0; i < dim - 1; i++) {*/
-/*    sscanf(p, "%f,%n", query + i, &step);*/
-/*    p += step;*/
-/*  }*/
-/*  sscanf(p, "%f", query + i);*/
-/*}*/
-
 int main(int argc, char *argv[]) {
   char str[1024];
   int k;
@@ -29,7 +20,7 @@ int main(int argc, char *argv[]) {
 
   int numQueries = 0;
 
-  if (argc != 2) {
+  if (argc < 3 || argc > 4) {
     fprintf(stderr, "Usage: %s <index-file> [percentage]\n", argv[0]);
     exit(1);
   }
@@ -42,6 +33,12 @@ int main(int argc, char *argv[]) {
   stat(argv[1], &sdata);
   fprintf(stderr, "read %lli bytes\n", 
           (long long)sdata.st_size);
+
+  percentage = 0.1;
+
+  if (argc == 3) {
+    percentage = atof(argv[2]);
+  }
 
   while (true) {
     int query;
