@@ -29,6 +29,8 @@ int main(int argc, char *argv[]) {
 
   Index index = build(dbname, n, &argc, &argv);
 
+  printIndex(index);
+
   saveIndex(index, indexFile);
   freeIndex(index, false);
 

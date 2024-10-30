@@ -1,3 +1,6 @@
 src/trie.*
 src/include/main.c
 src/include/pq
+build
+index
+queries

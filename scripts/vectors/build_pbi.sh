@@ -7,15 +7,17 @@ fi
 
 EXECUTABLE=$1
 DB=$2
-SIZE=$3
-INDEX_DIR=$4
+INDEX_DIR=$3
+SIZE=$4
 
-DEFAULT_PERMUTANTS=(128 256)
+DEFAULT_PERMUTANTS=(128 256 512)
 
 PERMUTANTS=${DEFAULT_PERMUTANTS[@]}
 
 
 shift 4
+
+
 while getopts "p:" opt; do
   case $opt in
     p) PERMUTANTS=($OPTARG) ;;

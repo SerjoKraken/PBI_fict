@@ -52,26 +52,57 @@ int comparate(const void *a, const void *b) {
   return (*_a - *_b);
 }
 
+int comparateFloat(const void *a, const void * b) {
+  float *_a, *_b;
+
+  _a = (float *)a;
+  _b = (float *)b;
+
+  return (*_a - *_b);
+}
+
 
 float * generateByDistance(float *distances) {
   int i;
   int n = pbifp->nPermutants * pbifp->size;
-  printf("n: %d\n", n);
 
   float *result = malloc(sizeof(float) * pbifp->nFicticious);
   // we look for the first non zero distance
   for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
-  printf("i: %d\n", i);
 
-  // we calculate the pivot t
-  // we let this with using just the last distance
-  /*float t = (distances[n - 1] - distances[i])/((pbifp->nFicticious));*/
-  float t = (distances[n - 1]) / (pbifp->nFicticious);
+
+  // calculate the step of the distribution
+  // it's a distance at a percentage of the
+  // distances
+  int step = (n - 1 - i) / 100;
+
+  // i + 0 * step -> cuantos quedan al comienzo 
+  // i + 1 * step
+  // i + 2 * step
+  // i + 3 * step
+  float min_dist = distances[i + step];
+
+  // n - 1 - 0 * step -> cuantos quedan al final
+  // n - 1 - 10 * step
+  float max_dist = distances[n - 1 - 50 * step];
+
+
+  float t = (max_dist - min_dist) / (pbifp->nFicticious);
+
+  printf("distances: %d\n", n);
+  printf("distances[i]: %f\n", distances[i]);
+
+  printf("min_dist: %f\n", min_dist);
+  printf("max_dist: %f\n", max_dist);
+
+  printf("distances[n - 1]: %f\n", distances[n - 1]);
+
 
   for (int j  = 0; j < pbifp->nFicticious; j++) {
-    result[j] = t / 2 + t * j;
+    result[j] = t / 2 + t * j + min_dist;
   }
   return result;
+
 }
 
 float * generateByFrecuency(float *distances) {
@@ -84,11 +115,24 @@ float * generateByFrecuency(float *distances) {
   for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
   int size = (n - i);
 
-  int p = floor((double)size / pbifp->nFicticious);
+  int step = (n - 1 - i) / 100;
+
+  float min_dist = distances[i];
+  float max_dist = distances[n - 1];
+
+  printf("min_dist: %f\n", min_dist);
+  printf("max_dist: %f\n", max_dist);
+
+  int p = floor((double)n / pbifp->nFicticious);
+
+  printf("i: %d\n", i);
+  printf("size: %d\n", size);
+  printf("p: %d\n", p);
+  printf("p / 2: %d\n", p / 2);
 
   for (int j  = 0; j < pbifp->nFicticious; j++) {
     int index = p / 2 + p * j;
-    result[j] = (distances[index + nPer] + distances[index + nPer + 1]) / 2;
+    result[j] = (distances[index] + distances[index + 1]) / 2;
   }
   return result;
 }
@@ -225,7 +269,7 @@ void loadObjects(fileHeader *h, int nPermutants) {
     }
   }
 
-  qsort(distanceEvaluationsSorted, nPermutants * pbifp->size, sizeof(float), comparate);
+  qsort(distanceEvaluationsSorted, nPermutants * pbifp->size, sizeof(float), comparateFloat);
 
 
   // generate the ficticious distances
@@ -545,6 +589,7 @@ float kNNSearch(Index S, int obj, int k, bool show) {
   }
 
   qsort(pbifp->objects, pbifp->size, sizeof(Object), comparateObjects);
+  /*qsort(void *base, size_t nmemb, size_t size, __compar_fn_t compar)*/
 
 
   // we look in the 2% 3% 5% 7% 10% of the database and we add the k nearest objects

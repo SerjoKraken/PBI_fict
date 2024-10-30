@@ -63,3 +63,6 @@ all-documents: build-pbi-documents query-pbifp-documents \
 	build-pbifp-documents query-pbifp-documents
 
 
+clean:
+	rm build/vectors/*
+	rm build/strings/*

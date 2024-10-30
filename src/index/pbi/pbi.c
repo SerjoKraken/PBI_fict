@@ -420,7 +420,6 @@ void quicksort_pbi(Object *objects, int size) {
 float kNNSearch(Index S, int obj, int k, bool show) {
 
   fileHeader *header = (fileHeader *)S;
-  float percentages[] = {0.02, 0.03, 0.05, 0.07, 0.1};
 
   // We calculate the spearman rho distance between the query and the database
   int *queryPermutation = malloc(sizeof(int) * pbi->nPermutants);
@@ -443,13 +442,12 @@ float kNNSearch(Index S, int obj, int k, bool show) {
 
   qsort(pbi->objects, pbi->size, sizeof(Object), comparateObjects);
 
-  float db_percent = 0.1;
 
   // we look in the 2% 3% 5% 7% of the database and we add the k nearest objects
   // into the NNCandidates
   //
 
-  int n = pbi->size * db_percent;
+  int n = pbi->size * percentage;
 
   // Creation of the priorityQueue
   PQ *pq = createPQ(k, comparateNNElems, sizeof(NNelem));
@@ -534,8 +532,7 @@ int rangeSearch(Index S, int obj, float r, bool show) {
 
   // We look in a percentage of the database
   // It should be an argument in this function
-  float db_percent = 0.1;
-  int n = header->n * db_percent;
+  int n = header->n * percentage;
   unsigned count = 0;
 
   for (int i = 0; i < pbi->size && i < n; i++) {
