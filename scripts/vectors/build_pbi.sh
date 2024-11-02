@@ -17,7 +17,6 @@ PERMUTANTS=${DEFAULT_PERMUTANTS[@]}
 
 shift 4
 
-
 while getopts "p:" opt; do
   case $opt in
     p) PERMUTANTS=($OPTARG) ;;
