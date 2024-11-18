@@ -1,4 +1,3 @@
-
 #include "pbi.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +33,8 @@ int spearmanRho(int *u, int *q, int n) {
   int *inverse = inversePermutation(u, n);
 
   for (i = 0; i < n; i++) {
-    sum += abs(i - inverse[q[i]]);
+    int d = i - inverse[q[i]];
+    sum += d * d;
   }
 
   free(inverse);
@@ -110,13 +110,8 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
 
   }
 
-  /*for(int i = 0; i < pbi->nPermutants; i++) {*/
-  /*  pbi->permutants[i] = rand() % pbi->size + 1;*/
-  /*}*/
-
-  // we sort the permutants array
+  // Sort the perumtants array
   qsort(pbi->permutants, pbi->nPermutants, sizeof(int), comparate);
-  
 
   for (int i = 1; i <= header->n; i++) {
     pbi->objects[i - 1].id = i;
@@ -126,7 +121,6 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
       /*pbi->objects[i - 1].permutation[j] = pbi->permutants[j];*/
     }
   }
-
 
   loadObjects(header, pbi->nPermutants);
 

@@ -4,6 +4,8 @@ def compare_files(file1, file2, k):
     total_groups = 0
     total_matches = 0
 
+    len_last_group = k
+
     with open(file1, "r") as f1, open(file2, "r") as f2:
         while True:
 
@@ -12,6 +14,7 @@ def compare_files(file1, file2, k):
 
             lines1 = [line for line in lines1 if line]
             lines2 = [line for line in lines2 if line]
+
             
             if not lines1 and not lines2:
                 break
@@ -30,7 +33,9 @@ def compare_files(file1, file2, k):
                 # print(f"Query {total_groups}: {block_percentage:.2f}% of coincidences")
                 
         if total_groups > 0:
-            overall_percentage = (total_matches / (total_groups * k)) * 100
+            # Consider the last line posible difference
+            # total_matches += len_last_group
+            overall_percentage = ((total_matches) / (total_groups * (k))) * 100
             print(f"{overall_percentage:.2f}%")
 
 if __name__ == "__main__":

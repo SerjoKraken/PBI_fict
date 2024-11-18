@@ -12,7 +12,10 @@ DB db;
 
 static int never = 1;
 
-#define distance(u, q) (db.dist(db(u), db(q)))
+
+float distance(int u, int q) {
+  return db.dist(db(u), db(q));
+}
 
 
 int ed (char *w1, char *w2) {
@@ -68,7 +71,7 @@ int openDB(char *name) {
 
   FILE *f;
   struct stat sdata;
-  unsigned long dn;
+  unsigned long dn = 0;
 
   closeDB();
   f = fopen(name, "r");
@@ -110,5 +113,9 @@ void closeDB(void) {
   db.words = NULL;
   db.ptrs = NULL;
   db.c = NULL;
+}
+
+DB * getDB() {
+  return &db;
 }
 

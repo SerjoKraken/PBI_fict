@@ -8,12 +8,10 @@
 
 PBIFP * pbifp;
 
-
 long long numDistances = 0;
 float * distanceEvaluations = NULL;
 float * distanceEvaluationsSorted = NULL;
 float percentage;
-
 
 // u = [2, 5, 1, 0, 4, 3]
 
@@ -101,12 +99,12 @@ float * generateByFrecuency(float *distances) {
   for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
 
   int size = (n - i);
-  int step = (n - 1 - i) / 100;
+  /*int step = (n - 1 - i) / 100;*/
 
-  int p = floor((float)n / pbifp->nFicticious);
+  int p = floor((float)size / pbifp->nFicticious);
 
   for (int j  = 0; j < pbifp->nFicticious; j++) {
-    int index = p / 2 + p * j;
+    int index = p / 2 + p * j + i; // Sumamos i para evitar las distancias nulas del inicio
     result[j] = (distances[index] + distances[index + 1]) / 2;
   }
 
@@ -190,15 +188,17 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
   return (Index)header;
 }
 
-// We calculate the permutation sorting by the distances form every permutant
+// We calculate the permutation sorting by the distances for every permutant
 void quicksort(float *distances, int *permutation, int n) {
+
+  if (n < 2)
+    return;
+
   int i, j;
   float p;
   float t;
   int tp;
 
-  if (n < 2)
-    return;
   p = distances[n / 2];
   for (i = 0, j = n - 1;; i++, j--) {
     while (distances[i] < p)
@@ -449,8 +449,6 @@ void printPQ(PQ *pq) {
 }
 
 void queryPermutationProcess(int *queryPermutation, float *distances, int n) {
-  queryPermutation = malloc(sizeof(int) * n);
-  distances = malloc(sizeof(float) * n);
 
   for (int i = 0; i < n; i++) {
     queryPermutation[i] = i;
@@ -475,8 +473,8 @@ void queryPermutationProcess(int *queryPermutation, float *distances, int n) {
 
 float kNNSearch(Index S, int obj, int k, bool show) {
   fileHeader *header = (fileHeader *)S;
-  int *queryPermutation;
-  float *distances;
+  int *queryPermutation = malloc(sizeof(int) * pbifp->permutationSize);
+  float *distances = malloc(sizeof(int) * pbifp->permutationSize);
   int n = header->n * percentage;
   NNCandidates nn;
 
