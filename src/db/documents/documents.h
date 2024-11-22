@@ -35,10 +35,9 @@ void closeDB();
 
 void printObj(int ojb);
 
-
 int parseObj(char *s);
 
-
+DB *getDB(void);
 
 
 #endif // !DEBUG

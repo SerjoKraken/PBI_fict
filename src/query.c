@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
       break;
     }
 
+
     // -0 finalize the program
     if (!strcmp(str, "-0")) {
       break;
@@ -95,6 +96,8 @@ int main(int argc, char *argv[]) {
       times(&t2);
       fprintf(stderr, "kNNs at distance %f\n", r);
     }
+    fflush(stderr);
+    fflush(stdout);
 
   }
 
@@ -104,5 +107,6 @@ int main(int argc, char *argv[]) {
   freeIndex(index, true);
   fprintf(stderr, "done\n");
 
+  
   return 0;
 }

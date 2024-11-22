@@ -133,3 +133,8 @@ int parseObj(char *s) {
   sscanf(s, "%i", &i);
   return i;
 }
+
+
+DB *getDB(void){
+  return &db;
+}

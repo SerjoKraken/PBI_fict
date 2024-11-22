@@ -32,5 +32,3 @@ for i in $(seq 1 $PERCENTAGE); do
   fi 
 done
 
-
-

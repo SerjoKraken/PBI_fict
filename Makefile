@@ -59,10 +59,12 @@ all-vectors: build-pbi-vectors query-pbi-vectors \
 all-strings: build-pbi-strings query-pbi-strings \
 	build-pbifp-strings query-pbifp-strings
 
-all-documents: build-pbi-documents query-pbifp-documents \
+all-documents: build-pbi-documents query-pbi-documents \
 	build-pbifp-documents query-pbifp-documents
 
+all: all-vectors all-strings all-documents
 
 clean:
 	rm build/vectors/*
 	rm build/strings/*
+	rm build/documents/*
