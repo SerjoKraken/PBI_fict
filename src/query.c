@@ -11,7 +11,7 @@
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-  char str[1024];
+  char str[10000];
   int k;
   float r;
 

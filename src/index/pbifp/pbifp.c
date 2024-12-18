@@ -111,6 +111,40 @@ float * generateByFrecuency(float *distances) {
   return result;
 }
 
+float * generateByMean(float *distances) {
+  int i;
+  int n = pbifp->nPermutants * pbifp->size;
+  float *result = malloc(sizeof(float) * pbifp->nFicticious);
+
+  for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
+
+
+  float mean = 0;
+  for (int j = i; j < n; j++) {
+    mean += distances[j];
+  }
+  mean /= (n - i);
+  
+  float variance = 0;
+  for (int j = i; j < n; j++) {
+    variance += (distances[j] - mean) * (distances[j] - mean);
+  }
+  variance /= (n - i);
+
+  float deviation = sqrt(variance);
+
+  float min_dist = mean - 3 * deviation;
+  float max_dist = mean + deviation;
+
+  float t = (max_dist - min_dist) / (pbifp->nFicticious);
+
+  for (int j  = 0; j < pbifp->nFicticious; j++) {
+    result[j] = t / 2 + t * j;
+  }
+
+  return result;
+}
+
 
 Index build(char *dbname, int n, int *argc, char ***argv) {
   // argv[0] = ./index.out
@@ -150,9 +184,11 @@ Index build(char *dbname, int n, int *argc, char ***argv) {
 
     // we have to check the arguments
   if (!atoi((*argv)[6]))
-    pbifp->distanceGenerator = generateByDistance;
+    pbifp->g = generateByDistance; // distance
+  else if (atoi((*argv)[6]) == 2)
+    pbifp->g = generateByMean;    // mean
   else
-    pbifp->distanceGenerator = generateByFrecuency;
+    pbifp->g = generateByFrecuency; // frecuency
 
   srand(time(NULL));
 
@@ -238,7 +274,7 @@ void loadObjects(fileHeader *h, int nPermutants) {
   qsort(distanceEvaluationsSorted, nPermutants * pbifp->size, sizeof(float), comparateFloat);
 
   // generate the ficticious distances
-  pbifp->ficticiousDistances = pbifp->distanceGenerator(distanceEvaluationsSorted);
+  pbifp->ficticiousDistances = pbifp->g(distanceEvaluationsSorted);
 
   float *distances = malloc(sizeof(float) * (nPermutants + pbifp->nFicticious));
 
@@ -353,7 +389,7 @@ void saveIndex(Index index, char *filename) {
 }
 
 Index loadIndex(char *filename) {
-  char str[1024];
+  char str[10000];
   char *ptr = str;
   int i, j;
   FILE *fp;
@@ -474,7 +510,7 @@ void queryPermutationProcess(int *queryPermutation, float *distances, int n) {
 float kNNSearch(Index S, int obj, int k, bool show) {
   fileHeader *header = (fileHeader *)S;
   int *queryPermutation = malloc(sizeof(int) * pbifp->permutationSize);
-  float *distances = malloc(sizeof(int) * pbifp->permutationSize);
+  float *distances = malloc(sizeof(float) * pbifp->permutationSize);
   int n = header->n * percentage;
   NNCandidates nn;
 
@@ -494,8 +530,10 @@ float kNNSearch(Index S, int obj, int k, bool show) {
     // printf("elem->id = %d, elem->dist = %f\n", elem->id, elem->dist);
     if (pq->heapSize == k) {
       if (comparateNNElems(elem, peekPQ(pq)) < 0) {
-        extractMaxPQ(pq);
+        free(extractMaxPQ(pq));
         insertPQ(pq, elem);
+      }else {
+        free(elem);
       }
     } else {
       insertPQ(pq, elem);
@@ -503,9 +541,10 @@ float kNNSearch(Index S, int obj, int k, bool show) {
   }
 
   for (int i = 0; !isEmptyPQ(pq) && i < k; i++) {
-    NNelem element = *(NNelem *)extractMaxPQ(pq);
-    nn.elements[i] = element;
+    NNelem *element = (NNelem *)extractMaxPQ(pq);
+    nn.elements[i] = *element;
     nn.size++;
+    free(element);
     /*fprintf(stdout, "distance = %f\n", element.dist);*/
   }
 
@@ -534,8 +573,8 @@ float kNNSearch(Index S, int obj, int k, bool show) {
 //
 int rangeSearch(Index S, int obj, float r, bool show) {
   fileHeader *header = (fileHeader *)S;
-  int *queryPermutation;
-  float *distances;
+  int *queryPermutation = malloc(sizeof(int) * pbifp->permutationSize);
+  float *distances = malloc(sizeof(float) * pbifp->permutationSize);
   unsigned count = 0;
   // We look in a percentage of the database
   int n = header->n * percentage;

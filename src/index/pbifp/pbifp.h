@@ -49,7 +49,7 @@ typedef struct {
 
   Object *objects; // objects of the index
   int size;        // size of the index
-  float * (*distanceGenerator)(float *);
+  float * (*g)(float *);
   
 } PBIFP;
 

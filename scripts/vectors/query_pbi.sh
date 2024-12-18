@@ -12,14 +12,15 @@ QUERY_FILE=$4
 
 PERCENTAGE=100
 
+PERCENTAGES=(1 2 3 4 5 6 7 8 9 10 15 20 30 40 50)
 
-shift 4
-while getopts "p:" opt; do
-  case $opt in
-    d) PERMUTANTS=($OPTARG) ;;
-   *) echo "Invalid option -$OPTARG"; exit 1 ;;
-  esac
-done
+# shift 4
+# while getopts "p:" opt; do
+#   case $opt in
+#     d) PERMUTANTS=($OPTARG) ;;
+#    *) echo "Invalid option -$OPTARG"; exit 1 ;;
+#   esac
+# done
 
 mkdir -p $OUTPUT_DIR
 

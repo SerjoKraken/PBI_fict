@@ -9,10 +9,16 @@ INEXACT_DIR=$2
 DIMENSIONS=$3
 K=$4
 
-rm $INEXACT_DIR/results.txt
+PERCENTAGES=(1 2 3 4 5 6 7 8 9 10 15 20 30 40 50)
 
-for i in {1..100}; do
-  if ((i % 5 == 0)); then
-    python src/compare_knn_results.py $EXACT_OUTPUT $INEXACT_DIR/$i $K >> $INEXACT_DIR/results.txt
-  fi
+# rm $INEXACT_DIR/results.txt
+
+for query_file in $@; do
+  route_file=$(echo "$query_file" | sed 's/.*\///')
+  mkdir -p $OUTPUT_DIR/$route_file
+  for i in ${PERCENTAGES[@]}; do
+    answer=$(python src/compare_knn_results.py $EXACT_OUTPUT $INEXACT_DIR/$i $K)
+    echo $answer
+    # echo $answer >> $INEXACT_DIR/results.txt
+  done
 done

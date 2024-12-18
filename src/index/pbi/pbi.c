@@ -375,12 +375,10 @@ void quicksort_pbi(Object *objects, int size) {
 }
 
 void queryPermutationProcess(int *queryPermutation, float *distances, int n){
-  queryPermutation = malloc(sizeof(int) * n);
-  distances = malloc(sizeof(float) * n);
 
   for (int i = 0; i < n; i++) {
     queryPermutation[i] = i;
-    distances[i] = distance(pbi->permutants[queryPermutation[i]], NewObj);
+    distances[i] = distance(pbi->permutants[i], NewObj);
     numDistances++;
   }
 
@@ -395,21 +393,16 @@ void queryPermutationProcess(int *queryPermutation, float *distances, int n){
 }
 
 float kNNSearch(Index S, int obj, int k, bool show) {
-
   fileHeader *header = (fileHeader *)S;
-
-  // We calculate the spearman rho distance between the query and the database
-  int *queryPermutation;
-  float *distances;
+  int *queryPermutation = malloc(sizeof(int) * pbi->nPermutants);
+  float *distances = malloc(sizeof(float) * pbi->nPermutants);
+  int n = header->n * percentage;
+  NNCandidates nn;
 
   queryPermutationProcess(queryPermutation, distances, pbi->nPermutants);
 
-  int n = pbi->size * percentage;
-
-  // Creation of the priorityQueue
   PQ *pq = createPQ(k, comparateNNElems, sizeof(NNelem));
 
-  NNCandidates nn;
   nn.elements = malloc(sizeof(NNelem) * k);
   nn.k = k;
   nn.size = 0;
@@ -443,12 +436,15 @@ float kNNSearch(Index S, int obj, int k, bool show) {
       printObj(nn.elements[i].id);
   }
 
-  destroyPQ(pq);
+  float r = nn.elements[nn.size - 1].dist;
+
   free(queryPermutation);
   free(distances);
+  free(nn.elements);
+  destroyPQ(pq);
 
   // the first element in the NNCandidates has the farthest distance
-  return nn.elements[nn.size - 1].dist;
+  return r;
 }
 
 int comparateRElem(Item a, Item b) {
@@ -471,8 +467,8 @@ int comparateRElem(Item a, Item b) {
 int rangeSearch(Index S, int obj, float r, bool show) {
   fileHeader *header = (fileHeader *)S;
 
-  int *queryPermutation;
-  float *distances;
+  int *queryPermutation = malloc(sizeof(int) * pbi->nPermutants);
+  float *distances = malloc(sizeof(float) * pbi->nPermutants);
 
   queryPermutationProcess(queryPermutation, distances, pbi->nPermutants);
 

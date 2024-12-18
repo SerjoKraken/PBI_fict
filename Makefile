@@ -1,6 +1,7 @@
-CC = clang
+CC = gcc
 
 CFLAGS = -Wall -Wextra -g -lm
+SANITIZERS = -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer
 DB_VECTORS = src/db/vectors/vectors.c
 DB_DOCUMENTS = src/db/documents/documents.c
 DB_STRINGS = src/db/strings/strings.c

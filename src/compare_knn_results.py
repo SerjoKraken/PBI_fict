@@ -36,7 +36,7 @@ def compare_files(file1, file2, k):
             # Consider the last line posible difference
             # total_matches += len_last_group
             overall_percentage = ((total_matches) / (total_groups * (k))) * 100
-            print(f"{overall_percentage:.2f}%")
+            print(f"{overall_percentage:.2f}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
