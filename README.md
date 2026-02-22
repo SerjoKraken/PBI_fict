@@ -28,25 +28,177 @@ sudo apt install -y build-essential gcc make git gnuplot ghostscript imagemagick
 ## Estructura del proyecto
 
 ```
-├── Makefile                    # Compilación de binarios
-├── src/
-│   ├── basics.c/h              # Funciones auxiliares
-│   ├── build.c                 # Construcción de índices
-│   ├── query.c                 # Consultas sobre índices
-│   ├── db/vectors/             # Manejo de datasets de vectores
-│   ├── index/pbi/              # Implementación PBI
-│   ├── index/pbifp/            # Implementación PBIFP (con ficticios)
-│   └── include/                # Cola de prioridad y utilidades
-├── data/
-│   ├── binary/vectors/         # Datasets binarios (.bin)
-│   └── generator/vectors/      # Generadores de datos y queries
-├── scripts/vectors/
-│   ├── run_experiments.sh      # Ejecutar experimentos completos
-│   └── generate_plots.sh       # Generar gráficos desde resultados
-├── build/vectors/              # Binarios compilados (generado)
-├── index/vectors/              # Índices generados (generado)
-├── queries/vectors/            # Archivos de queries (generado)
-└── results/vectors/            # Resultados de experimentos (generado)
+permutants/
+├── Makefile                            # Compilación de binarios (gcc -std=c11)
+├── README.md
+│
+├── src/                                # Código fuente
+│   ├── basics.c                        # Funciones auxiliares
+│   ├── basics.h
+│   ├── build.c                         # Punto de entrada: construcción de índices
+│   ├── query.c                         # Punto de entrada: consultas sobre índices
+│   ├── trie.c                          # Implementación de trie
+│   ├── trie.h
+│   ├── compare_knn_results.py          # Comparar resultados KNN (precisión)
+│   ├── compare_knn_results_byline.py   # Comparación línea a línea
+│   ├── compare_knn_results_bypercentaje.py  # Comparación por porcentaje
+│   ├── showcontent.py                  # Visualizar contenido de archivos
+│   ├── showpbi.py                      # Visualizar índice PBI
+│   ├── showpbifp.py                    # Visualizar índice PBIFP
+│   ├── db/                             # Manejo de bases de datos
+│   │   ├── documents/
+│   │   │   ├── documents.c
+│   │   │   └── documents.h
+│   │   ├── strings/
+│   │   │   ├── strings.c
+│   │   │   └── strings.h
+│   │   └── vectors/
+│   │       ├── vectors.c               # Lectura/escritura de datasets de vectores
+│   │       └── vectors.h
+│   ├── include/                        # Utilidades compartidas
+│   │   ├── main.c
+│   │   ├── pq                          # Cola de prioridad (archivo)
+│   │   ├── priorityQueue.c
+│   │   └── priorityQueue.h
+│   └── index/                          # Implementaciones de índices
+│       ├── index.h
+│       ├── pbi/
+│       │   ├── pbi.c                   # Implementación PBI
+│       │   └── pbi.h
+│       └── pbifp/
+│           ├── pbifp.c                 # Implementación PBIFP (con ficticios)
+│           └── pbifp.h
+│
+├── build/                              # Binarios compilados (generado por make)
+│   ├── documents/                      # (vacío)
+│   ├── strings/                        # (vacío)
+│   └── vectors/
+│       ├── build-aesa-vectors          # Construir índice AESA
+│       ├── build-pbi-vectors           # Construir índice PBI
+│       ├── build-pbifp-vectors         # Construir índice PBIFP
+│       ├── query-aesa-vectors          # Consultar índice AESA (exacto)
+│       ├── query-pbi-vectors           # Consultar índice PBI
+│       └── query-pbifp-vectors         # Consultar índice PBIFP
+│
+├── data/                               # Datos de entrada
+│   ├── binary/                         # Datasets en formato binario
+│   │   ├── strings/
+│   │   └── vectors/                    # Ej: 10000v_128d.bin, 20000v_256d.bin
+│   ├── generator/                      # Generadores de datos y queries
+│   │   ├── strings/
+│   │   │   ├── Makefile
+│   │   │   ├── genqueries.c
+│   │   │   └── objstrings.c
+│   │   └── vectors/
+│   │       ├── Makefile
+│   │       ├── convertcoords.c         # Convertir coordenadas texto → binario
+│   │       ├── genqueries.c            # Generar archivo de queries
+│   │       └── uniform/
+│   │           ├── Makefile
+│   │           └── gencoords.c         # Generar vectores uniformes
+│   └── raw/                            # Datos en texto plano
+│       ├── strings/
+│       │   ├── wordlist
+│       │   └── shuffled_wordlist
+│       └── vectors/                    # Ej: 10000v_128d.dat, 10000v_256d.dat
+│
+├── scripts/                            # Scripts de automatización
+│   ├── documents/                      # (vacío)
+│   ├── strings/
+│   │   ├── build_pbi.sh
+│   │   └── build_pbifp.sh
+│   └── vectors/
+│       ├── run_experiments.sh          # Ejecutar experimentos completos
+│       ├── generate_plots.sh           # Generar gráficos desde resultados
+│       ├── build_pbi.sh                # Construir índice PBI
+│       ├── build_pbifp.sh              # Construir índice PBIFP
+│       ├── query_pbi.sh                # Consultar índice PBI
+│       ├── query_pbifp.sh              # Consultar índice PBIFP
+│       ├── compare_results.sh          # Comparar resultados
+│       ├── analyze_results.sh          # Analizar resultados
+│       ├── generate_vectors_dbs.sh     # Generar datasets de vectores
+│       ├── convert_vectors_dbs.sh      # Convertir datasets a binario
+│       ├── check_environment.sh        # Verificar dependencias del sistema
+│       ├── clean.sh                    # Limpiar archivos generados
+│       ├── help.sh                     # Mostrar ayuda de scripts
+│       ├── quick_example.sh            # Ejemplo rápido de uso
+│       ├── quickstart.sh              # Inicio rápido
+│       └── test_run.sh                 # Prueba de ejecución
+│
+├── index/                              # Índices generados (generado en ejecución)
+│   ├── documents/                      # (vacío)
+│   ├── strings/
+│   │   ├── aesa/
+│   │   ├── fqt/
+│   │   ├── pbi/
+│   │   └── pbifp/
+│   └── vectors/
+│       ├── aesa/                       # Índices AESA (referencia exacta)
+│       ├── fqt/
+│       ├── pbi/                        # Índices PBI generados
+│       └── pbifp/                      # Índices PBIFP generados
+│
+├── queries/                            # Archivos de queries (generado)
+│   ├── strings/
+│   │   ├── nn/
+│   │   └── range/
+│   └── vectors/
+│       ├── nn/                         # Queries nearest-neighbor
+│       └── range/                      # Queries por rango
+│
+├── output/                             # Salidas de consultas (generado)
+│   └── vectors/
+│       ├── aesa/                       # Salida AESA (respuesta exacta)
+│       ├── pbi/                        # Salida PBI
+│       └── pbifp/                      # Salida PBIFP
+│
+├── results/                            # Resultados de experimentos (generado)
+│   └── vectors/
+│       └── experiment_<D>d_<P>p_<TIMESTAMP>/
+│           ├── summary.txt             # Resumen del experimento
+│           ├── experiment.log          # Log de ejecución
+│           ├── comparisons/
+│           │   ├── pbi_precision_avg.csv       # Precisión PBI promediada
+│           │   └── pbifp_precision_avg.csv     # Precisión PBIFP promediada
+│           ├── reports/
+│           │   └── summary_report.txt
+│           ├── plots/
+│           │   ├── graficos/                   # Gráficos EPS/PNG/PDF generados
+│           │   │   ├── pbi_precision_<D>d_<P>p.{eps,png,pdf}
+│           │   │   ├── pbifp_precision_<D>d_<P>p.{eps,png,pdf}
+│           │   │   ├── unified_pbi_pbifp_<D>d_<P>p.{eps,png,pdf}
+│           │   │   ├── unified_zoom_0_10_<D>d_<P>p.{eps,png,pdf}
+│           │   │   ├── pbi_zoom_0_10_<D>d_<P>p.{eps,png,pdf}
+│           │   │   ├── pbifp_zoom_0_10_<D>d_<P>p.{eps,png,pdf}
+│           │   │   ├── pbifp_improvement_all_<D>d_<P>p.{eps,png,pdf}
+│           │   │   ├── pbifp_improvement_best_<D>d_<P>p.{eps,png,pdf}
+│           │   │   └── pbi_vs_pbifp_<D>d_<P>p.{eps,png,pdf}
+│           │   ├── comparison_table.txt        # Tabla comparativa
+│           │   ├── graphics_report.txt
+│           │   ├── pbi_precision.data          # Datos PBI para gnuplot
+│           │   ├── pbifp_precision_*f.data     # Datos PBIFP por config. ficticia
+│           │   ├── improvement_*f.data         # Datos de mejora por config.
+│           │   ├── pbifp_improvement_all.data
+│           │   ├── pbifp_improvement_best.data
+│           │   ├── pbifp_best.data
+│           │   └── *.gnu                       # Scripts gnuplot generados
+│           ├── exact/                          # Resultados búsqueda exacta
+│           ├── pbi/                            # Resultados PBI por instancia
+│           ├── pbifp/                          # Resultados PBIFP por instancia
+│           ├── queries/                        # Queries usadas
+│           └── instance_*/                     # Resultados por instancia (1-5)
+│
+└── graphics/                           # Gráficos adicionales y configuraciones
+    ├── documents/                      # (vacío)
+    ├── strings/                        # (vacío)
+    └── vectors/
+        ├── pbifp.gnu                   # Script gnuplot de referencia
+        ├── pbi_vs_aesa_k10.gnu         # PBI vs AESA
+        ├── best_configurations.txt     # Mejores configuraciones encontradas
+        ├── pbi_vs_pbifp_comparison.txt # Comparación PBI vs PBIFP
+        ├── pbifp_*_distance.data       # Datos de distancia
+        ├── pbifp_*_frecuency.data      # Datos de frecuencia
+        └── *.eps, *.pdf                # Gráficos generados
 ```
 
 ## Compilación
