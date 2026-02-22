@@ -5,3 +5,7 @@ build
 index
 queries
 output
+results
+data/binary
+data/raw
+graphics

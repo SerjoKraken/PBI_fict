@@ -1,13 +1,17 @@
 #ifndef DB_H
 #define DB_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <math.h>
-#include <stdio.h>
 
+typedef unsigned int uint;
 
 typedef struct t_vocab{
   uint id; // the id of the term

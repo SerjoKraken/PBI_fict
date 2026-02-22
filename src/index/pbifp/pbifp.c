@@ -66,25 +66,24 @@ float * generateByDistance(float *distances) {
   int n = pbifp->nPermutants * pbifp->size;
   float *result = malloc(sizeof(float) * pbifp->nFicticious);
 
-  for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
+  // Buscar el primer elemento no-cero
+  for (i = 0; i < n && distanceEvaluationsSorted[i] == 0; i++);
 
-  // calculate the step of the distribution
-  int step = (n - 1 - i) / 100;
+  // Calcular el paso: 1% de margen en cada extremo
+  int validRange = n - i;
+  int step = validRange / 100;
+  if (step < 1) step = 1;
 
-  // i + 0 * step -> cuantos quedan al comienzo 
-  // i + 1 * step
-  // i + 2 * step
-  // i + 3 * step
+  // Tomar min y max con margen del 1%
   float min_dist = distances[i + step];
-
-  // n - 1 - 0 * step -> cuantos quedan al final
-  // n - 1 - 10 * step
   float max_dist = distances[n - 1 - step];
 
-  float t = (max_dist - min_dist) / (pbifp->nFicticious);
+  // Distribuir uniformemente los pivotes ficticios en el rango
+  float t = (max_dist - min_dist) / pbifp->nFicticious;
 
-  for (int j  = 0; j < pbifp->nFicticious; j++) {
-    result[j] = t / 2 + t * j + min_dist;
+  for (int j = 0; j < pbifp->nFicticious; j++) {
+    // Centrar cada pivote en su segmento (t/2) + desplazamiento (t*j) + offset (min_dist)
+    result[j] = min_dist + t / 2 + t * j;
   }
 
   return result;
@@ -93,19 +92,29 @@ float * generateByDistance(float *distances) {
 float * generateByFrecuency(float *distances) {
   int i;
   int n = pbifp->nPermutants * pbifp->size;
-  int nPer = pbifp->nPermutants;
   float *result = malloc(sizeof(float) * pbifp->nFicticious);
 
-  for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
+  // Buscar el primer elemento no-cero
+  for (i = 0; i < n && distanceEvaluationsSorted[i] == 0; i++);
 
-  int size = (n - i);
-  /*int step = (n - 1 - i) / 100;*/
-
+  int size = n - i;
+  
+  // Dividir el rango en segmentos iguales según la cantidad de pivotes ficticios
   int p = floor((float)size / pbifp->nFicticious);
+  if (p < 1) p = 1;
 
-  for (int j  = 0; j < pbifp->nFicticious; j++) {
-    int index = p / 2 + p * j + i; // Sumamos i para evitar las distancias nulas del inicio
-    result[j] = (distances[index] + distances[index + 1]) / 2;
+  for (int j = 0; j < pbifp->nFicticious; j++) {
+    // Tomar el centro de cada segmento, sumando i para offset inicial
+    int index = i + p / 2 + p * j;
+    
+    // Verificar que no nos salgamos del rango válido
+    if (index >= n - 1) {
+      // Si estamos en el último elemento, usar solo ese valor
+      result[j] = distances[n - 1];
+    } else {
+      // Promediar con el siguiente para suavizar
+      result[j] = (distances[index] + distances[index + 1]) / 2.0;
+    }
   }
 
   return result;
@@ -116,30 +125,41 @@ float * generateByMean(float *distances) {
   int n = pbifp->nPermutants * pbifp->size;
   float *result = malloc(sizeof(float) * pbifp->nFicticious);
 
-  for (i = pbifp->nPermutants - 1; distanceEvaluationsSorted[i] == 0 && i < n; i++);
+  // Buscar el primer elemento no-cero
+  for (i = 0; i < n && distanceEvaluationsSorted[i] == 0; i++);
 
+  int validSize = n - i;
 
+  // Calcular la media de las distancias válidas
   float mean = 0;
   for (int j = i; j < n; j++) {
     mean += distances[j];
   }
-  mean /= (n - i);
+  mean /= validSize;
   
+  // Calcular la varianza
   float variance = 0;
   for (int j = i; j < n; j++) {
-    variance += (distances[j] - mean) * (distances[j] - mean);
+    float diff = distances[j] - mean;
+    variance += diff * diff;
   }
-  variance /= (n - i);
+  variance /= validSize;
 
   float deviation = sqrt(variance);
 
-  float min_dist = mean - 3 * deviation;
+  // Definir rango: [media - 2σ, media + σ]
+  float min_dist = mean - 2 * deviation;
   float max_dist = mean + deviation;
 
-  float t = (max_dist - min_dist) / (pbifp->nFicticious);
+  // Asegurar que min_dist no sea negativo (las distancias son ≥ 0)
+  if (min_dist < 0) min_dist = 0;
 
-  for (int j  = 0; j < pbifp->nFicticious; j++) {
-    result[j] = t / 2 + t * j;
+  // Distribuir pivotes ficticios uniformemente en el rango estadístico
+  float t = (max_dist - min_dist) / pbifp->nFicticious;
+
+  for (int j = 0; j < pbifp->nFicticious; j++) {
+    // IMPORTANTE: Agregar min_dist como offset base
+    result[j] = min_dist + t / 2 + t * j;
   }
 
   return result;

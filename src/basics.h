@@ -3,15 +3,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
 #include <math.h>
 
 typedef unsigned char byte;
-typedef int bool;
-
-#define true 1
-#define false 0
+typedef unsigned int uint;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
